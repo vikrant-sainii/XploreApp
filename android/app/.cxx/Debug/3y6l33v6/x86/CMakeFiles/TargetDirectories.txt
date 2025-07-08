@@ -1,0 +1,2 @@
+/Users/vikrantsaini/git/xplore-app/android/app/.cxx/Debug/3y6l33v6/x86/CMakeFiles/edit_cache.dir
+/Users/vikrantsaini/git/xplore-app/android/app/.cxx/Debug/3y6l33v6/x86/CMakeFiles/rebuild_cache.dir
