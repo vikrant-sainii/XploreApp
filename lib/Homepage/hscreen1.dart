@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomeScreen1 extends StatelessWidget {
-  const HomeScreen1({super.key});
+  final Function(int) changeindex;
+  const HomeScreen1({super.key, required this.changeindex});
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +50,7 @@ class HomeScreen1 extends StatelessWidget {
               SizedBox(
                 height: height * 0.05,
               ),
+              //general container(is used in screen 2 and screen 3)
               Container(
                 width: width,
                 decoration: BoxDecoration(
@@ -89,7 +91,9 @@ class HomeScreen1 extends StatelessWidget {
                             imagelocation: "assets/gdgc.png",
                             title: "GDGC CLUB",
                             subtitle: "Free Workshop",
-                            onTap: () {},
+                            onTap: () {
+                              changeindex(1);
+                            },
                             type: TrailingType.typeRegistered,
                           );
                         },
@@ -134,7 +138,7 @@ class HomeScreen1 extends StatelessWidget {
                             imagelocation: "assets/octave.png",
                             title: "Octave",
                             subtitle: "Venue : A3,Civil Building",
-                            onTap: () {},
+                            onTap: () => changeindex(2),
                             type: TrailingType.typeUpcoming,
                           );
                         },
@@ -152,8 +156,7 @@ class HomeScreen1 extends StatelessWidget {
 }
 
 //functions for optimisation
-
-enum TrailingType { typeUpcoming, typeRegistered }
+enum TrailingType{ typeUpcoming, typeRegistered }
 
 Widget buildTrailing(TrailingType type, VoidCallback? onTap) {
   switch (type) {
@@ -171,7 +174,7 @@ Widget buildTrailing(TrailingType type, VoidCallback? onTap) {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(FontAwesomeIcons.angleUp, size: 14, color: Colors.orange),
+              Icon(FontAwesomeIcons.angleRight, size: 14, color: Colors.orange),
               GestureDetector(
                 onTap: onTap,
                 child: Text(
@@ -186,7 +189,7 @@ Widget buildTrailing(TrailingType type, VoidCallback? onTap) {
     case (TrailingType.typeRegistered):
       return IconButton(
         onPressed: onTap,
-        icon: Icon(FontAwesomeIcons.angleDown),
+        icon: Icon(FontAwesomeIcons.angleRight),
         color: Color(0xFFF7931A),
       );
   }
@@ -220,24 +223,23 @@ class EventTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
       ),
       child: ListTile(
-        leading: Image.asset(
-          imagelocation,
-        ),
-        title: Text(
-          title,
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(color: Color(0xFF9395A4)),
-        ),
-        trailing: buildTrailing(type, onTap)
-      ),
+          leading: Image.asset(
+            imagelocation,
+          ),
+          title: Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(color: Color(0xFF9395A4)),
+          ),
+          trailing: buildTrailing(type, onTap)),
     );
   }
 }
 
-//Upcoming Events Tile
+//XploreMore Events Tile
 class XploreTile extends StatelessWidget {
   final VoidCallback? onTap;
   final String title;
@@ -281,7 +283,7 @@ class XploreTile extends StatelessWidget {
             padding: EdgeInsets.only(right: width * 0.05),
             child: IconButton(
               onPressed: onTap,
-              icon: Icon(FontAwesomeIcons.angleDown),
+              icon: Icon(FontAwesomeIcons.angleRight),
               color: Color(0xFFF7931A),
             ),
           ),

@@ -73,7 +73,11 @@ flutter:
     - assets/octave.png
     - assets/welcframe.jpeg    
     - assets/icons/homenav.svg
-
+    - assets/pillar.png
+    - assets/dogworkshop.png
+    - assets/workshopevent.png
+    - assets/bhangralogo.png
+    - assets/homescreen4.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

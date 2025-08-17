@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:xplore_app/Homepage/screen1.dart';
+import 'package:xplore_app/adminscreens/adminscreen2.dart';
+import 'package:xplore_app/adminscreens/eventpreview.dart';
+import 'package:xplore_app/Homepage/hscreen1.dart';
+import 'package:xplore_app/Homepage/hscreen4.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,7 +14,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentindex = 0;
-  final List<Widget> screen = [HomeScreen1(),Scaffold(body: Center(child: Text("coming1"))),Scaffold(body: Center(child: Text("coming2"))),Scaffold(body: Center(child: Text("coming3")))];
+
+  //general function to call back
+  void _modifyindex(int index) {
+    setState(() {
+      currentindex = index;
+    });
+  }
+
+  late final List<Widget> screen = [
+    HomeScreen1(changeindex: _modifyindex,),
+    Adminscreen2(changeindex: _modifyindex),
+    EventPreview(changeindex: _modifyindex),
+    HomeScreen4(changeindex: _modifyindex),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -22,17 +39,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:
-        const Color.fromRGBO(245, 245, 245, 1), // Optional for contrast
+          const Color.fromRGBO(245, 245, 245, 1), // Optional for contrast
       body: Stack(
         children: [
           screen[currentindex],
           CustomBottomNavBar(
             currentindex: currentindex,
-            onTap: (int index) {
-              setState(() {
-                currentindex = index;
-              });
-            },
+            onTap: _modifyindex,
           ),
         ],
       ),
@@ -106,5 +119,3 @@ class CustomBottomNavBar extends StatelessWidget {
     );
   }
 }
-
-
