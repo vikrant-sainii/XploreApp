@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../screen2.dart';
 
 class HomeScreen1 extends StatelessWidget {
   final Function(int) changeindex;
@@ -8,7 +9,7 @@ class HomeScreen1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(MediaQuery.of(context).size.width),
+      appBar: customAppBar(MediaQuery.of(context).size.width, context),
       backgroundColor: Color(0xFFF7F7FA),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -293,8 +294,8 @@ class XploreTile extends StatelessWidget {
   }
 }
 
-//app bar
-PreferredSizeWidget customAppBar(double width) {
+
+PreferredSizeWidget customAppBar(double width, BuildContext context) {
   return PreferredSize(
     preferredSize: const Size.fromHeight(40), // app bar height
     child: SafeArea(
@@ -317,9 +318,29 @@ PreferredSizeWidget customAppBar(double width) {
                 color: Colors.black,
               ),
             ),
+            const Spacer(), // pushes logout button to right
+            IconButton(
+              icon: const Icon(
+                Icons.logout,
+                size: 28,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                // 👇 handle logout logic here
+                // Example: Navigate back to login screen
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Screen2()),
+              );
+                // OR if you use Firebase Auth:
+                // await FirebaseAuth.instance.signOut();
+                // Navigator.pushReplacementNamed(context, "/login");
+              },
+            ),
           ],
         ),
       ),
     ),
   );
 }
+

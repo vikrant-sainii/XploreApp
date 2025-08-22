@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Homepage/hscreen1.dart';
+import '../screen1.dart';
 
 class Adminscreen1 extends StatelessWidget {
   final Function(int) changeindex;
@@ -8,7 +9,7 @@ class Adminscreen1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: customAppBar(MediaQuery.of(context).size.width),
+        appBar: customAppBar(MediaQuery.of(context).size.width, context),
         backgroundColor: Color(0xFFF7F7FA),
         body: LayoutBuilder(builder: (context, constraints) {
           final height = constraints.maxHeight;
@@ -117,7 +118,7 @@ class Adminscreen1 extends StatelessWidget {
 } //general container(is used in screen 2 and screen 3)
 
 //app bar
-PreferredSizeWidget customAppBar(double width) {
+PreferredSizeWidget customAppBar(double width, BuildContext context) {
   return PreferredSize(
     preferredSize: const Size.fromHeight(40), // app bar height
     child: SafeArea(
@@ -126,8 +127,10 @@ PreferredSizeWidget customAppBar(double width) {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(
-              "assets/gdgc.png",
+            const Icon(
+              Icons.home,
+              size: 32,
+              color: Colors.black,
             ),
             SizedBox(width: width * 0.04),
             const Text(
@@ -138,9 +141,29 @@ PreferredSizeWidget customAppBar(double width) {
                 color: Colors.black,
               ),
             ),
+            const Spacer(), // pushes logout button to right
+            IconButton(
+              icon: const Icon(
+                Icons.logout,
+                size: 28,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                // 👇 handle logout logic here
+                // Example: Navigate back to login screen
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Screen1()),
+              );
+                // OR if you use Firebase Auth:
+                // await FirebaseAuth.instance.signOut();
+                // Navigator.pushReplacementNamed(context, "/login");
+              },
+            ),
           ],
         ),
       ),
     ),
   );
 }
+

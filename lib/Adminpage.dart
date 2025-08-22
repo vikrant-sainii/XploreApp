@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:xplore_app/Homepage/hscreen2.dart';
-import 'package:xplore_app/Homepage/hscreen3.dart';
 import 'package:xplore_app/adminscreens/adminscreen1.dart';
 import 'package:xplore_app/adminscreens/adminscreen2.dart';
-import 'package:xplore_app/Homepage/hscreen1.dart';
 import 'package:xplore_app/Homepage/hscreen4.dart';
+import 'package:xplore_app/adminscreens/eventpreview.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class AdminPage extends StatefulWidget {
+  const AdminPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<AdminPage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<AdminPage> {
   int currentindex = 0;
 
   //general function to call back
@@ -25,9 +23,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   late final List<Widget> screen = [
-    HomeScreen1(changeindex: _modifyindex,),
-    HomeScreen2(changeindex: _modifyindex),
-    HomeScreen3(changeindex: _modifyindex),
+    Adminscreen1(changeindex: _modifyindex,),
+    Adminscreen2(changeindex: _modifyindex),
+    EventPreview(changeindex: _modifyindex),
     HomeScreen4(changeindex: _modifyindex),
   ];
 
