@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:xplore_app/Homepage/screen_x.dart';
-import '../screen2.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/event/event_bloc.dart';
+import 'package:xplore_app/screens/user/user_clubs_screen.dart';
+import 'package:xplore_app/screens/user/user_event_details_screen.dart';
 
-class HomeScreen1 extends StatelessWidget {
+class UserHomeScreen extends StatelessWidget {
   final Function(int) changeindex;
-  const HomeScreen1({super.key, required this.changeindex});
+  const UserHomeScreen({super.key, required this.changeindex});
 
   @override
   Widget build(BuildContext context) {
@@ -83,21 +85,33 @@ class HomeScreen1 extends StatelessWidget {
                       margin: EdgeInsets.symmetric(
                         horizontal: width * 0.05,
                       ),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: 4,
-                        padding: EdgeInsets.only(),
-                        scrollDirection: Axis.vertical,
-                        itemBuilder: (BuildContext context, int index) {
-                          return EventTile(
-                            imagelocation: "assets/gdgc.png",
-                            title: "GDGC CLUB",
-                            subtitle: "Free Workshop",
-                            onTap: () {
-                              changeindex(1);
-                            },
-                            type: TrailingType.typeRegistered,
-                          );
+                      child: BlocBuilder<EventBloc, EventState>(
+                        builder: (context, state) {
+                          if (state is EventLoading) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (state is EventError) {
+                            return Center(child: Text(state.message));
+                          } else if (state is EventsLoaded) {
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: state.registeredEvents.length,
+                              padding: EdgeInsets.only(),
+                              scrollDirection: Axis.vertical,
+                              itemBuilder: (BuildContext context, int index) {
+                                final event = state.registeredEvents[index];
+                                return EventTile(
+                                  imagelocation: event.imageLocation,
+                                  title: event.title,
+                                  subtitle: event.subtitle,
+                                  onTap: () {
+                                    changeindex(1);
+                                  },
+                                  type: TrailingType.typeRegistered,
+                                );
+                              },
+                            );
+                          }
+                          return const SizedBox.shrink();
                         },
                       ),
                     ),
@@ -130,19 +144,41 @@ class HomeScreen1 extends StatelessWidget {
                       margin: EdgeInsets.symmetric(
                         horizontal: width * 0.05,
                       ),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: 4,
-                        padding: EdgeInsets.only(),
-                        scrollDirection: Axis.vertical,
-                        itemBuilder: (BuildContext context, int index) {
-                          return EventTile(
-                            imagelocation: "assets/octave.png",
-                            title: "Octave",
-                            subtitle: "Venue : A3,Civil Building",
-                            onTap: () => changeindex(2),
-                            type: TrailingType.typeUpcoming,
-                          );
+                      child: BlocBuilder<EventBloc, EventState>(
+                        builder: (context, state) {
+                          if (state is EventLoading) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (state is EventError) {
+                            return Center(child: Text(state.message));
+                          } else if (state is EventsLoaded) {
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: state.upcomingEvents.length,
+                              padding: EdgeInsets.only(),
+                              scrollDirection: Axis.vertical,
+                              itemBuilder: (BuildContext context, int index) {
+                                final event = state.upcomingEvents[index];
+                                return EventTile(
+                                  imagelocation: event.imageLocation,
+                                  title: event.title,
+                                  subtitle: event.subtitle,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => UserEventDetailsScreen(
+                                          changeindex: (val) {}, 
+                                          preview: EventDraft.no
+                                        )
+                                      ),
+                                    );
+                                  },
+                                  type: TrailingType.typeUpcoming,
+                                );
+                              },
+                            );
+                          }
+                          return const SizedBox.shrink();
                         },
                       ),
                     ),
@@ -321,15 +357,13 @@ PreferredSizeWidget customAppBar(double width, BuildContext context) {
             ),
             const Spacer(), // pushes logout button to right
             IconButton(
-              icon: const Icon(
-                Icons.groups_outlined,
-                size: 28,
-                color: Colors.black,
-              ),
+              iconSize: 28,
+              icon: const Icon(Icons.apps),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ScreenX()),
+                  MaterialPageRoute(
+                      builder: (context) => const UserClubsScreen()),
                 );
               },
             ),

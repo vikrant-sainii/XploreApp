@@ -1,38 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../screen2.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/head/head_bloc.dart';
+import 'package:xplore_app/screens/user/login_screen.dart';
 
-class Adminscreen1 extends StatelessWidget {
+class HeadDashboardScreen extends StatelessWidget {
   final Function(int) changeindex;
-  const Adminscreen1({super.key, required this.changeindex});
+  const HeadDashboardScreen({super.key, required this.changeindex});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FA),
       appBar: _buildAppBar(context),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildLeadCard(context),
-            const SizedBox(height: 32),
-            const Text(
-              "DASHBOARD",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-              ),
+      body: BlocBuilder<HeadBloc, HeadState>(
+        builder: (context, state) {
+          if (state is HeadInitial) {
+            context.read<HeadBloc>().add(FetchDashboardStats());
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLeadCard(context),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "DASHBOARD",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    if (state is HeadDashboardLoaded)
+                      Text("Total Members: ${state.stats['totalMembers']}", 
+                        style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold))
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (state is HeadLoading)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  _buildDashboardGrid(),
+                const SizedBox(height: 32),
+                _buildRecentActivities(),
+                const SizedBox(height: 100), // Avoid being hidden by bottom nav
+              ],
             ),
-            const SizedBox(height: 16),
-            _buildDashboardGrid(),
-            const SizedBox(height: 32),
-            _buildRecentActivities(),
-            const SizedBox(height: 100), // Avoid being hidden by bottom nav
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -67,7 +88,7 @@ class Adminscreen1 extends StatelessWidget {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const Screen2()),
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
             );
           },
           tooltip: "Logout",

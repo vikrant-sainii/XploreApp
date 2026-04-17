@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:xplore_app/screens/unused/otp_verification_screen.dart';
 
-class RollPass extends StatelessWidget {
-  const RollPass({super.key});
+class ForgotPasswordRollScreen extends StatelessWidget {
+  const ForgotPasswordRollScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,7 @@ class RollPass extends StatelessWidget {
                     Padding(padding: EdgeInsets.only(left: 25)),
                     IconButton(
                       iconSize: 32,
-                      onPressed: () {},
+                      onPressed: () => Navigator.pop(context),
                       splashColor: Colors.grey.withAlpha(64),
                       icon: Icon(
                         Icons.arrow_back,
@@ -68,7 +69,12 @@ class RollPass extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(25),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const OtpVerificationScreen()),
+                      );
+                    },
                     style: ButtonStyle(
                         backgroundColor: WidgetStatePropertyAll(Color(0xFF191C32)),
                         fixedSize: WidgetStatePropertyAll(Size.fromHeight(65))),

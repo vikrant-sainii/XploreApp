@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class EventPreview extends StatefulWidget {
+class HeadEventPreviewScreen extends StatefulWidget {
   final Function(int) changeindex;
-  const EventPreview({super.key, required this.changeindex});
+  const HeadEventPreviewScreen({super.key, required this.changeindex});
 
   @override
-  State<EventPreview> createState() => _EventPreviewState();
+  State<HeadEventPreviewScreen> createState() => _HeadEventPreviewScreenState();
 }
 
-class _EventPreviewState extends State<EventPreview> {
+class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
   bool _isEditing = false;
   
   late TextEditingController _titleController;

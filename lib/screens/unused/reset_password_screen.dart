@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class Newpass extends StatelessWidget {
-  const Newpass({super.key});
+class ResetPasswordScreen extends StatelessWidget {
+  const ResetPasswordScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +50,10 @@ class Newpass extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(25),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Navigate back to login
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
                     style: ButtonStyle(
                         backgroundColor: WidgetStatePropertyAll(Color(0xFF191C32)),
                         fixedSize: WidgetStatePropertyAll(Size.fromHeight(65))),

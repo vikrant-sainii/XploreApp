@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 enum EventDraft{yes,no} //function optimisation
 
-class Workshop extends StatelessWidget {
+class UserEventDetailsScreen extends StatelessWidget {
   final Function(int) changeindex;
   final EventDraft preview ;
-  const Workshop({super.key, required this.changeindex,required this.preview});
+  const UserEventDetailsScreen({super.key, required this.changeindex,required this.preview});
 
   @override
   Widget build(BuildContext context) {

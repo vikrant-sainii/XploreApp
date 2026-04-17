@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:xplore_app/homepage.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/screens/user/user_portal_screen.dart';
+import 'package:xplore_app/screens/unused/forgot_password_roll_screen.dart';
+import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 
-class Screen2 extends StatefulWidget {
-  const Screen2({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<Screen2> createState() => _Screen2State();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _Screen2State extends State<Screen2> {
+class _LoginScreenState extends State<LoginScreen> {
   // Controllers for text fields
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -22,10 +25,9 @@ class _Screen2State extends State<Screen2> {
   }
 
   void _handleStudentLogin() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomePage()),
-    );
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    context.read<AuthBloc>().add(LoginRequested(email, password));
   }
 
   void _showSnackBar(String message) {
@@ -39,13 +41,26 @@ class _Screen2State extends State<Screen2> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is Authenticated) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const UserPortalScreen()),
+          );
+        } else if (state is AuthError) {
+          _showSnackBar(state.message);
+        }
       },
-      child: Scaffold(
-        backgroundColor: const Color.fromRGBO(246, 247, 250, 1),
-        body: ListView(
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          backgroundColor: const Color.fromRGBO(246, 247, 250, 1),
+          body: Stack(
+            children: [
+              ListView(
               children: [
                 const SizedBox(height: 10),
                 Image.asset(
@@ -120,7 +135,10 @@ class _Screen2State extends State<Screen2> {
                 Center(
                   child: GestureDetector(
                     onTap: () {
-                      _showForgotPasswordDialog();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ForgotPasswordRollScreen()),
+                      );
                     },
                     child: const Text(
                       "FORGOT PASSWORD?",
@@ -134,58 +152,27 @@ class _Screen2State extends State<Screen2> {
                 const SizedBox(height: 20),
               ],
             ),
-          ),
-        );
-      }
-
-  void _showForgotPasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        final TextEditingController emailController = TextEditingController();
-        return AlertDialog(
-          title: const Text('Forgot Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Enter your email address to reset your password:'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Here you can implement forgot password functionality
-                // For now, just show a message
-                Navigator.of(context).pop();
-                _showSnackBar(
-                    'Password reset functionality not implemented yet');
+            // Loading indicator overlay
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                if (state is AuthLoading) {
+                  return Container(
+                    color: Colors.black.withOpacity(0.3),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF191C32),
-              ),
-              child: const Text(
-                'Reset Password',
-                style: TextStyle(color: Colors.white),
-              ),
             ),
           ],
-        );
-      },
-    );
+        ),
+      ),
+    ));
   }
+
+  // Removed _showForgotPasswordDialog to use specialized screen flow
 }
 
 InputDecoration myDecoration(String hintText, IconData youricon) {

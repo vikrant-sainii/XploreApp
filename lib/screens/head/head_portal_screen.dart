@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:xplore_app/adminscreens/adminscreen1.dart';
-import 'package:xplore_app/adminscreens/adminscreen2.dart';
-import 'package:xplore_app/Homepage/hscreen4.dart';
-import 'package:xplore_app/adminscreens/event_management.dart';
-import 'package:xplore_app/adminscreens/eventpreview.dart';
+import 'package:xplore_app/screens/head/head_dashboard_screen.dart';
+import 'package:xplore_app/screens/head/head_add_event_screen.dart';
+import 'package:xplore_app/screens/head/head_event_management_screen.dart';
+import 'package:xplore_app/screens/head/head_event_preview_screen.dart';
 
-class AdminPage extends StatefulWidget {
-  const AdminPage({super.key});
+class HeadPortalScreen extends StatefulWidget {
+  const HeadPortalScreen({super.key});
 
   @override
-  State<AdminPage> createState() => _HomePageState();
+  State<HeadPortalScreen> createState() => _HeadPortalScreenState();
 }
 
-class _HomePageState extends State<AdminPage> {
+class _HeadPortalScreenState extends State<HeadPortalScreen> {
   int currentindex = 0;
 
   //general function to call back
@@ -24,10 +23,10 @@ class _HomePageState extends State<AdminPage> {
   }
 
   late final List<Widget> screen = [
-    Adminscreen1(changeindex: _modifyindex,),
-    Adminscreen2(changeindex: _modifyindex),
-    EventPreview(changeindex: _modifyindex),
-    EventManagement(changeindex: _modifyindex),
+    HeadDashboardScreen(changeindex: _modifyindex,),
+    HeadAddEventScreen(changeindex: _modifyindex),
+    HeadEventPreviewScreen(changeindex: _modifyindex),
+    HeadEventManagementScreen(changeindex: _modifyindex),
   ];
 
   @override

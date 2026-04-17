@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'hscreen1.dart';
-import 'workshop.dart';
+import 'user_home_screen.dart';
 
-class HomeScreen2 extends StatelessWidget {
+class UserUpcomingEventsScreen extends StatelessWidget {
   final Function(int) changeindex;
-  const HomeScreen2({super.key, required this.changeindex});
+  const UserUpcomingEventsScreen({super.key, required this.changeindex});
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +55,7 @@ class HomeScreen2 extends StatelessWidget {
                     // Add padding to prevent it from touching the edge
                     padding: const EdgeInsets.only(top: 16, left: 24),
                     child: Text(
-                      "Registered\nEvents",
+                      "Upcoming\nEvents",
                       style: TextStyle(
                         color: Colors.white,
                         letterSpacing: -1,
@@ -105,24 +104,13 @@ class HomeScreen2 extends StatelessWidget {
                               return Card(
                                 elevation: 4,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
+                                    borderRadius: BorderRadius.circular(30)),
                                 child: EventTile(
-                                  imagelocation: "assets/gdgc.png",
-                                  title: "GDGC CLUB",
+                                  imagelocation: "assets/octave.png",
+                                  title: "OCTAVE CLUB",
                                   subtitle: "Free Workshop",
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => Workshop(
-                                          changeindex: changeindex,
-                                          preview: EventDraft.no,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  type: TrailingType.typeRegistered,
+                                  onTap: () {},
+                                  type: TrailingType.typeUpcoming,
                                 ),
                               );
                             } else {
@@ -133,21 +121,11 @@ class HomeScreen2 extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
-                                      "No More Events",
+                                      "Coming Soon..",
                                       style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                           color: Color.fromRGBO(0, 0, 0, 0.65)),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {},
-                                      child: const Text(
-                                        "Tap to Register ?",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                Color.fromRGBO(0, 0, 0, 0.65)),
-                                      ),
                                     ),
                                   ],
                                 ),

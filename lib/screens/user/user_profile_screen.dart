@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../screen2.dart';
+import 'login_screen.dart';
 
-class HomeScreen4 extends StatelessWidget {
+class UserProfileScreen extends StatelessWidget {
   final Function(int) changeindex;
-  const HomeScreen4({super.key, required this.changeindex});
+  const UserProfileScreen({super.key, required this.changeindex});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,7 @@ class HomeScreen4 extends StatelessWidget {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const Screen2()),
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
               );
             },
             style: IconButton.styleFrom(backgroundColor: Colors.white),

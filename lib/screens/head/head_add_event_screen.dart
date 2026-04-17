@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class Adminscreen2 extends StatelessWidget {
+class HeadAddEventScreen extends StatelessWidget {
   final Function(int) changeindex;
-  const Adminscreen2({super.key, required this.changeindex});
+  const HeadAddEventScreen({super.key, required this.changeindex});
 
   @override
   Widget build(BuildContext context) {

@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:xplore_app/Homepage/hscreen2.dart';
-import 'package:xplore_app/Homepage/hscreen3.dart';
-import 'package:xplore_app/adminscreens/adminscreen1.dart';
-import 'package:xplore_app/adminscreens/adminscreen2.dart';
-import 'package:xplore_app/Homepage/hscreen1.dart';
-import 'package:xplore_app/Homepage/hscreen4.dart';
+import 'package:xplore_app/screens/user/user_registered_events_screen.dart';
+import 'package:xplore_app/screens/user/user_upcoming_events_screen.dart';
+import 'package:xplore_app/screens/user/user_home_screen.dart';
+import 'package:xplore_app/screens/user/user_profile_screen.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class UserPortalScreen extends StatefulWidget {
+  const UserPortalScreen({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<UserPortalScreen> createState() => _UserPortalScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _UserPortalScreenState extends State<UserPortalScreen> {
   int currentindex = 0;
 
   //general function to call back
@@ -25,10 +23,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   late final List<Widget> screen = [
-    HomeScreen1(changeindex: _modifyindex,),
-    HomeScreen2(changeindex: _modifyindex),
-    HomeScreen3(changeindex: _modifyindex),
-    HomeScreen4(changeindex: _modifyindex),
+    UserHomeScreen(changeindex: _modifyindex,),
+    UserRegisteredEventsScreen(changeindex: _modifyindex),
+    UserUpcomingEventsScreen(changeindex: _modifyindex),
+    UserProfileScreen(changeindex: _modifyindex),
   ];
 
   @override

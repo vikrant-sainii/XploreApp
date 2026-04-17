@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class EventManagement extends StatelessWidget {
+class HeadEventManagementScreen extends StatelessWidget {
   final Function(int) changeindex;
-  const EventManagement({super.key, required this.changeindex});
+  const HeadEventManagementScreen({super.key, required this.changeindex});
 
   @override
   Widget build(BuildContext context) {

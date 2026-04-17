@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../Adminpage.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/club/club_bloc.dart';
+import '../head/head_portal_screen.dart';
 
-class ScreenX extends StatelessWidget {
-  const ScreenX({super.key});
+class UserClubsScreen extends StatelessWidget {
+  const UserClubsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final double width = MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7FA),
       appBar: AppBar(
@@ -23,45 +23,43 @@ class ScreenX extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              "MEMBER PORTALS",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ),
-          _buildClubTile(
-            context,
-            name: "GDGC CLUB",
-            role: "HEAD",
-            image: "assets/gdgc.png",
-            isHead: true,
-          ),
-          const SizedBox(height: 12),
-          _buildClubTile(
-            context,
-            name: "OCTAVE CLUB",
-            role: "MEMBER",
-            image: "assets/octave.png",
-            isHead: false,
-          ),
-          const SizedBox(height: 12),
-          _buildClubTile(
-            context,
-            name: "BHANGRA CLUB",
-            role: "MEMBER",
-            image: "assets/bhangralogo.png",
-            isHead: false,
-          ),
-        ],
+      body: BlocBuilder<ClubBloc, ClubState>(
+        builder: (context, state) {
+          if (state is ClubLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ClubError) {
+            return Center(child: Text(state.message));
+          } else if (state is ClubsLoaded) {
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Text(
+                    "MEMBER PORTALS",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+                ...state.clubs.map((club) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildClubTile(
+                        context,
+                        name: club.name,
+                        role: club.role,
+                        image: club.image,
+                        isHead: club.role == "HEAD",
+                      ),
+                    )),
+              ],
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
@@ -78,7 +76,7 @@ class ScreenX extends StatelessWidget {
         if (isHead) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const AdminPage()),
+            MaterialPageRoute(builder: (_) => const HeadPortalScreen()),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

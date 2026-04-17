@@ -1,14 +1,15 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:xplore_app/screens/unused/reset_password_screen.dart';
 
-class Otp extends StatefulWidget {
-  const Otp({super.key});
+class OtpVerificationScreen extends StatefulWidget {
+  const OtpVerificationScreen({super.key});
 
   @override
-  State<Otp> createState() => _OtpState();
+  State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
-class _OtpState extends State<Otp> {
+class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   final String usermail = "vikrant@nitj.ac.in";
 
   @override
@@ -36,7 +37,7 @@ class _OtpState extends State<Otp> {
                     )),
                     IconButton(
                       iconSize: 32,
-                      onPressed: () {},
+                      onPressed: () => Navigator.pop(context),
                       splashColor: Colors.grey.withAlpha(64),
                       icon: Icon(
                         Icons.arrow_back,
@@ -121,6 +122,31 @@ class _OtpState extends State<Otp> {
                       ),
                     )
                   ],
+                ),
+                SizedBox(height: height * 0.02),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+                      );
+                    },
+                    style: ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll(Color(0xFF191C32)),
+                        fixedSize: WidgetStatePropertyAll(Size.fromHeight(55))),
+                    child: Center(
+                      child: Text(
+                        "VERIFY OTP",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 Spacer(),
                 Visibility(
