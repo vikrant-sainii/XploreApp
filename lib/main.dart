@@ -4,7 +4,7 @@ import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import 'package:xplore_app/blocs/club/club_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
 import 'package:xplore_app/blocs/head/head_bloc.dart';
-import 'package:xplore_app/screens/user/login_screen.dart';
+// import 'package:xplore_app/screens/user/login_screen.dart';
 import 'package:xplore_app/screens/user/register_screen.dart';
 import 'package:xplore_app/services/auth_service.dart';
 
