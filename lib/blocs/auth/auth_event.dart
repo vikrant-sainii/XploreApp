@@ -17,6 +17,29 @@ class LoginRequested extends AuthEvent {
   List<Object?> get props => [email, password];
 }
 
+class RegisterRequested extends AuthEvent {
+  final String name;
+  final String rollNo;
+  final String branch;
+  final String year;
+  final String program;
+  final String email;
+  final String password;
+
+  const RegisterRequested({
+    required this.name,
+    required this.rollNo,
+    required this.branch,
+    required this.year,
+    required this.program,
+    required this.email,
+    required this.password,
+  });
+
+  @override
+  List<Object?> get props => [name, rollNo, branch, year, program, email, password];
+}
+
 class LogoutRequested extends AuthEvent {}
 
 class ForgotPasswordRequested extends AuthEvent {
@@ -42,3 +65,4 @@ class ResetPasswordRequested extends AuthEvent {
   @override
   List<Object?> get props => [newPassword];
 }
+
