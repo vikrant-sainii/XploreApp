@@ -1,4 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../services/event_service.dart';
+import '../../services/user_service.dart';
+import '../../models/event_model.dart';
 import 'event_event.dart';
 import 'event_state.dart';
 
@@ -6,65 +9,59 @@ export 'event_event.dart';
 export 'event_state.dart';
 
 class EventBloc extends Bloc<EventEvent, EventState> {
-  EventBloc() : super(EventInitial()) {
+  final EventService _eventService;
+  final UserService _userService;
+
+  EventBloc({EventService? eventService, UserService? userService})
+      : _eventService = eventService ?? EventService(),
+        _userService = userService ?? UserService(),
+        super(EventInitial()) {
     on<FetchAllEvents>((event, emit) async {
       emit(EventLoading());
-      await Future.delayed(const Duration(seconds: 1)); // Mock network delay
-      
-      final mockRegistered = [
-        const EventModel(
-          id: '1', 
-          title: 'GDGC CLUB Workshop', 
-          subtitle: 'Free Workshop', 
-          imageLocation: 'assets/gdgc.png',
-          isRegistered: true,
-        ),
-        const EventModel(
-          id: '2', 
-          title: 'GDGC CLUB Workshop', 
-          subtitle: 'Free Workshop', 
-          imageLocation: 'assets/gdgc.png',
-          isRegistered: true,
-        ),
-        const EventModel(
-          id: '3', 
-          title: 'GDGC CLUB Workshop', 
-          subtitle: 'Free Workshop', 
-          imageLocation: 'assets/gdgc.png',
-          isRegistered: true,
-        ),    
-      ];
+      try {
+        // 1. Fetch all published events
+        final allEvents = await _eventService.getEvents();
 
-      final mockUpcoming = [
-        const EventModel(
-          id: '1', 
-          title: 'Octave', 
-          subtitle: 'Venue : A3,Civil Building', 
-          imageLocation: 'assets/octave.png',
-          isRegistered: false,
-        ),
-        const EventModel(
-          id: '2', 
-          title: 'Octave', 
-          subtitle: 'Venue : A3,Civil Building', 
-          imageLocation: 'assets/octave.png',
-          isRegistered: false,
-        ),
-        const EventModel(
-          id: '3', 
-          title: 'Octave', 
-          subtitle: 'Venue : A3,Civil Building', 
-          imageLocation: 'assets/octave.png',
-          isRegistered: false,
-        ),
+        // 2. Fetch logged in user to get registered events
+        final meResult = await _userService.getMe();
+        List<EventModel> registered = [];
+        List<EventModel> upcoming = [];
 
+        if (meResult['success'] == true && meResult['user'] != null) {
+          final user = meResult['user'];
+          final participations = await _eventService.getUserRegisteredEvents(user.id);
+          
+          final registeredIds = participations.map((p) => p.eventId).toSet();
+          
+          // Extract the full EventModel from participations or match from allEvents
+          for (var p in participations) {
+            if (p.event != null) {
+              registered.add(p.event!.copyWith(isRegistered: true));
+            }
+          }
 
-      ];
+          // If some events from participations aren't fully populated, cross-reference
+          for (var ev in allEvents) {
+            if (registeredIds.contains(ev.id)) {
+              if (!registered.any((r) => r.id == ev.id)) {
+                registered.add(ev.copyWith(isRegistered: true));
+              }
+            } else {
+              upcoming.add(ev);
+            }
+          }
+        } else {
+          // Not logged in or guest: all events are upcoming
+          upcoming = allEvents;
+        }
 
-      emit(EventsLoaded(
-        registeredEvents: mockRegistered, 
-        upcomingEvents: mockUpcoming
-      ));
+        emit(EventsLoaded(
+          registeredEvents: registered,
+          upcomingEvents: upcoming,
+        ));
+      } catch (e) {
+        emit(EventError(e.toString()));
+      }
     });
   }
 }

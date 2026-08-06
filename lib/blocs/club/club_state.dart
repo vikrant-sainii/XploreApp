@@ -1,22 +1,5 @@
 import 'package:equatable/equatable.dart';
-
-// Dummy model to represent club data
-class ClubModel extends Equatable {
-  final String id;
-  final String name;
-  final String role; // "HEAD" or "MEMBER"
-  final String image;
-
-  const ClubModel({
-    required this.id,
-    required this.name,
-    required this.role,
-    required this.image,
-  });
-
-  @override
-  List<Object?> get props => [id, name, role, image];
-}
+import '../../models/club_model.dart';
 
 abstract class ClubState extends Equatable {
   const ClubState();

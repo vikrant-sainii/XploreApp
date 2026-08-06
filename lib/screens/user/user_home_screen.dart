@@ -100,9 +100,9 @@ class UserHomeScreen extends StatelessWidget {
                               itemBuilder: (BuildContext context, int index) {
                                 final event = state.registeredEvents[index];
                                 return EventTile(
-                                  imagelocation: event.imageLocation,
+                                  imagelocation: event.imageLocation ?? 'assets/octave.png',
                                   title: event.title,
-                                  subtitle: event.subtitle,
+                                  subtitle: event.subtitle ?? '',
                                   onTap: () {
                                     changeindex(1);
                                   },
@@ -159,9 +159,9 @@ class UserHomeScreen extends StatelessWidget {
                               itemBuilder: (BuildContext context, int index) {
                                 final event = state.upcomingEvents[index];
                                 return EventTile(
-                                  imagelocation: event.imageLocation,
+                                  imagelocation: event.imageLocation ?? 'assets/octave.png',
                                   title: event.title,
-                                  subtitle: event.subtitle,
+                                  subtitle: event.subtitle ?? '',
                                   onTap: () {
                                     Navigator.push(
                                       context,

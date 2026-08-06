@@ -1,23 +1,5 @@
 import 'package:equatable/equatable.dart';
-
-class EventModel extends Equatable {
-  final String id;
-  final String title;
-  final String subtitle;
-  final String imageLocation;
-  final bool isRegistered;
-
-  const EventModel({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.imageLocation,
-    required this.isRegistered,
-  });
-
-  @override
-  List<Object?> get props => [id, title, subtitle, imageLocation, isRegistered];
-}
+import '../../models/event_model.dart';
 
 abstract class EventState extends Equatable {
   const EventState();

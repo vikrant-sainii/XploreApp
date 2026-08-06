@@ -48,6 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
               context,
               MaterialPageRoute(builder: (_) => const UserPortalScreen()),
             );
+          } else if (state is Needs2FA) {
+            // TODO: Navigate to your OTP screen, passing state.email
+            _showSnackBar('OTP sent to ${state.email}');
           } else if (state is AuthError) {
             _showSnackBar(state.message);
           }
@@ -158,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   builder: (context, state) {
                     if (state is AuthLoading) {
                       return Container(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         child: const Center(
                           child: CircularProgressIndicator(),
                         ),

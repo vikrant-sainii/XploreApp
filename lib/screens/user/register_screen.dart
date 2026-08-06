@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import 'package:xplore_app/screens/user/login_screen.dart';
+import 'package:xplore_app/screens/user/user_portal_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -60,12 +61,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
         listener: (context, state) {
           if (state is RegisterSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Registration Successful! Please login."),
+              SnackBar(
+                content: Text(state.message),
                 backgroundColor: Colors.green,
               ),
             );
-            Navigator.pop(context); // Go back to login screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+            );
+          } else if (state is Authenticated) {
+            // Dev-mode: backend auto-logged us in
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const UserPortalScreen()),
+            );
           } else if (state is AuthError) {
             _showSnackBar(state.message);
           }
@@ -228,7 +238,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   builder: (context, state) {
                     if (state is AuthLoading) {
                       return Container(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         child: const Center(
                           child: CircularProgressIndicator(),
                         ),
