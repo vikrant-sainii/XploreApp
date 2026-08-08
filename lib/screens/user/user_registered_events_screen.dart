@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'user_home_screen.dart';
 import 'user_event_details_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/event/event_bloc.dart';
+import 'package:xplore_app/config/theme.dart';
 
 class UserRegisteredEventsScreen extends StatelessWidget {
   final Function(int) changeindex;
@@ -12,17 +15,17 @@ class UserRegisteredEventsScreen extends StatelessWidget {
       appBar: AppBar(
         scrolledUnderElevation: 0,
         leadingWidth: 60,
-        backgroundColor: Color(0xFFFF9AB2),
+        backgroundColor: AppColors.scaffoldBackground,
         leading: Row(
           children: [
             const SizedBox(width: 8), // This adds your space on the left
             IconButton(
               iconSize: 30,
               icon: const Icon(Icons.arrow_back),
-              color: Colors.black,
+              color: Colors.white,
               // This is the correct way to style an IconButton
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.cardColor,
                 shape: const CircleBorder(), // Makes the background a circle
               ),
               onPressed: () {
@@ -34,12 +37,12 @@ class UserRegisteredEventsScreen extends StatelessWidget {
         actions: [
           IconButton(
             iconSize: 30,
-            icon: Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert),
             onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
-            color: Colors.black,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.cardColor),
+            color: Colors.white,
           ),
-          Padding(padding: EdgeInsets.all(8))
+          const Padding(padding: EdgeInsets.all(8))
         ],
       ),
       body: LayoutBuilder(
@@ -47,7 +50,7 @@ class UserRegisteredEventsScreen extends StatelessWidget {
           final height = constraints.maxHeight;
           final width = constraints.maxWidth;
           return Container(
-            color: Color(0xFFFF9AB2),
+            color: AppColors.scaffoldBackground,
             child: Stack(
               children: [
                 Align(
@@ -55,7 +58,7 @@ class UserRegisteredEventsScreen extends StatelessWidget {
                   child: Padding(
                     // Add padding to prevent it from touching the edge
                     padding: const EdgeInsets.only(top: 16, left: 24),
-                    child: Text(
+                    child: const Text(
                       "Registered\nEvents",
                       style: TextStyle(
                         color: Colors.white,
@@ -83,7 +86,7 @@ class UserRegisteredEventsScreen extends StatelessWidget {
                   width: width,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
-                    color: Color(0xFFF7F7FA),
+                    color: AppColors.scaffoldBackground,
                   ),
                   child: Column(
                     children: [
@@ -95,64 +98,77 @@ class UserRegisteredEventsScreen extends StatelessWidget {
                         margin: EdgeInsets.symmetric(
                           horizontal: width * 0.05,
                         ),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: 5,
-                          // padding: EdgeInsets.only(),
-                          scrollDirection: Axis.vertical,
-                          itemBuilder: (BuildContext context, int index) {
-                            if (index < 4) {
-                              return Card(
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                child: EventTile(
-                                  imagelocation: "assets/gdgc.png",
-                                  title: "GDGC CLUB",
-                                  subtitle: "Free Workshop",
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => UserEventDetailsScreen(
-                                          changeindex: changeindex,
-                                          preview: EventDraft.no,
+                        child: BlocBuilder<EventBloc, EventState>(
+                          builder: (context, state) {
+                            if (state is EventLoading) {
+                              return const Center(child: CircularProgressIndicator());
+                            } else if (state is EventError) {
+                              return Center(child: Text(state.message));
+                            } else if (state is EventsLoaded) {
+                              final registered = state.registeredEvents;
+                              if (registered.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        "No registered events yet.",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.textSecondary),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          changeindex(2); // Go to upcoming tab
+                                        },
+                                        child: const Text(
+                                          "Tap to Register ?",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.primary),
                                         ),
                                       ),
-                                    );
-                                  },
-                                  type: TrailingType.typeRegistered,
-                                ),
-                              );
-                            } else {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 32.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Text(
-                                      "No More Events",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          color: Color.fromRGBO(0, 0, 0, 0.65)),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: registered.length,
+                                scrollDirection: Axis.vertical,
+                                itemBuilder: (BuildContext context, int index) {
+                                  final event = registered[index];
+                                  return Card(
+                                    color: AppColors.cardColor,
+                                    elevation: 4,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                      side: const BorderSide(color: AppColors.border, width: 1),
                                     ),
-                                    TextButton(
-                                      onPressed: () {},
-                                      child: const Text(
-                                        "Tap to Register ?",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                Color.fromRGBO(0, 0, 0, 0.65)),
-                                      ),
+                                    child: EventTile(
+                                      imagelocation: event.imageLocation ?? 'assets/octave.png',
+                                      title: event.title,
+                                      subtitle: event.subtitle ?? '',
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => UserEventDetailsScreen(
+                                              event: event,
+                                              changeindex: changeindex,
+                                              preview: EventDraft.no,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      type: TrailingType.typeRegistered,
                                     ),
-                                  ],
-                                ),
+                                  );
+                                },
                               );
                             }
+                            return const SizedBox.shrink();
                           },
                         ),
                       ),

@@ -8,8 +8,9 @@ import 'package:xplore_app/blocs/notification/notification_bloc.dart';
 import 'package:xplore_app/blocs/participation/participation_bloc.dart';
 import 'package:xplore_app/blocs/team/team_bloc.dart';
 import 'package:xplore_app/blocs/lost_found/lost_found_bloc.dart';
-// import 'package:xplore_app/screens/user/login_screen.dart';
-import 'package:xplore_app/screens/user/register_screen.dart';
+import 'package:xplore_app/screens/user/login_screen.dart';
+import 'package:xplore_app/config/theme.dart';
+// import 'package:xplore_app/screens/user/register_screen.dart';
 import 'package:xplore_app/services/auth_service.dart';
 
 void main() {
@@ -37,9 +38,11 @@ class MyApp extends StatelessWidget {
         BlocProvider<TeamBloc>(create: (context) => TeamBloc()),
         BlocProvider<LostFoundBloc>(create: (context) => LostFoundBloc()),
       ],
-      child: const MaterialApp(
-        home: RegisterScreen(),
+      child: MaterialApp(
+        home: const LoginScreen(),
         debugShowCheckedModeBanner: false,
+        themeMode: ThemeMode.dark,
+        darkTheme: AppTheme.darkTheme,
       ),
     );
   }

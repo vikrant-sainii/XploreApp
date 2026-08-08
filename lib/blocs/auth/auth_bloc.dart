@@ -54,8 +54,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (result['success'] == true) {
           // Dev mode: backend auto-logs in and returns user + token
           if (result['needs2FA'] == false && result['user'] is UserModel) {
-            emit(Authenticated(result['user'] as UserModel,
-                role: result['role'] as String? ?? 'member'));
+            final role = result['role'] as String? ?? 'member';
+            print("Successfully registered and auto-logged in! User role: $role");
+            emit(Authenticated(result['user'] as UserModel, role: role));
           } else {
             // Production: user must verify email first
             emit(RegisterSuccess(
@@ -199,7 +200,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
     final user = result['user'] as UserModel?;
     if (user != null) {
-      emit(Authenticated(user, role: result['role'] as String? ?? user.role));
+      final role = result['role'] as String? ?? user.role;
+      print("SUCCESSFULLY LOGGED IN! User role on terminal: $role");
+      emit(Authenticated(user, role: role));
     } else {
       emit(const AuthError('Unexpected response from server'));
     }

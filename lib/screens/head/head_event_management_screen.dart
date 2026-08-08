@@ -1,27 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/event/event_bloc.dart';
+import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+import 'package:xplore_app/blocs/head/head_bloc.dart';
+import 'package:xplore_app/config/theme.dart';
 
 class HeadEventManagementScreen extends StatelessWidget {
   final Function(int) changeindex;
   const HeadEventManagementScreen({super.key, required this.changeindex});
 
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return "6.00 pm";
+    final hour = dateTime.hour > 12
+        ? dateTime.hour - 12
+        : (dateTime.hour == 0 ? 12 : dateTime.hour);
+    final ampm = dateTime.hour >= 12 ? "pm" : "am";
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return "$hour.$minute $ampm";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         scrolledUnderElevation: 0,
         leadingWidth: 60,
-        backgroundColor: Color(0xFFF7F7FA),
+        backgroundColor: Colors.transparent,
         leading: Row(
           children: [
-            const SizedBox(width: 8), // This adds your space on the left
+            const SizedBox(width: 8),
             IconButton(
               iconSize: 30,
               icon: const Icon(Icons.arrow_back),
-              color: Colors.black,
-              // This is the correct way to style an IconButton
+              color: Colors.white,
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white,
-                shape: const CircleBorder(), // Makes the background a circle
+                backgroundColor: AppColors.cardColor,
+                shape: const CircleBorder(),
               ),
               onPressed: () {
                 changeindex(0);
@@ -32,12 +47,13 @@ class HeadEventManagementScreen extends StatelessWidget {
         actions: [
           IconButton(
             iconSize: 30,
-            icon: Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert),
             onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
-            color: Colors.black,
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppColors.cardColor),
+            color: Colors.white,
           ),
-          Padding(padding: EdgeInsets.all(8))
+          const Padding(padding: EdgeInsets.all(8))
         ],
       ),
       body: LayoutBuilder(
@@ -45,18 +61,17 @@ class HeadEventManagementScreen extends StatelessWidget {
           final height = constraints.maxHeight;
           final width = constraints.maxWidth;
           return Container(
-            color: Color(0xFFF7F7FA),
+            color: AppColors.scaffoldBackground,
             child: Stack(
               children: [
-                Align(
+                const Align(
                   alignment: Alignment.topLeft,
                   child: Padding(
-                    // Add padding to prevent it from touching the edge
-                    padding: const EdgeInsets.only(top: 16, left: 24),
+                    padding: EdgeInsets.only(top: 16, left: 24),
                     child: Text(
                       "Event\nManagement",
                       style: TextStyle(
-                        color: const Color.fromARGB(255, 0, 0, 0),
+                        color: Colors.white,
                         letterSpacing: -1,
                         fontWeight: FontWeight.w600,
                         fontSize: 37,
@@ -64,7 +79,6 @@ class HeadEventManagementScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // 2. Align the Image to the top-right
                 Align(
                   alignment: Alignment.topRight,
                   child: Image.asset(
@@ -80,8 +94,12 @@ class HeadEventManagementScreen extends StatelessWidget {
                       right: width * 0.02),
                   width: width,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(40),
-                    color: Color(0xFF191C32),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
+                    color: AppColors.cardColor,
+                    border: Border.all(color: AppColors.border, width: 1),
                   ),
                   child: Column(
                     children: [
@@ -89,14 +107,13 @@ class HeadEventManagementScreen extends StatelessWidget {
                         height: height * 0.03,
                       ),
                       Container(
-                        color: Color(0xFF191C32),
+                        color: Colors.transparent,
                         height: height * 0.7,
                         margin: EdgeInsets.symmetric(
                           horizontal: width * 0.06,
                         ),
                         child: ListView(
                           children: [
-                            // ADD EVENT Header
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -117,36 +134,60 @@ class HeadEventManagementScreen extends StatelessWidget {
                                   child: IconButton(
                                     icon: const Icon(Icons.add,
                                         color: Colors.black),
-                                    onPressed: () {},
+                                    onPressed: () => changeindex(1),
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 25),
-                            // Stats Grid Enclosed in Purple
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppColors.scaffoldBackground,
                                 borderRadius: BorderRadius.circular(35),
+                                border: Border.all(
+                                    color: AppColors.border, width: 1),
                               ),
-                              child: GridView.count(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 15,
-                                mainAxisSpacing: 15,
-                                childAspectRatio: 1.3,
-                                children: [
-                                  _statCard("20", "TOTAL\nEVENTS"),
-                                  _statCard("18", "COMPLETED\nEVENTS"),
-                                  _statCard("2", "UPCOMING\nEVENTS"),
-                                  _statCard("200", "PARTICIPANTS\nJOINED"),
-                                ],
+                              child: BlocBuilder<HeadBloc, HeadState>(
+                                builder: (context, state) {
+                                  final stats = state is HeadDashboardLoaded
+                                      ? state.stats
+                                      : {};
+                                  final totalEvents = stats['totalEvents'] ??
+                                      stats['eventCount'] ??
+                                      0;
+                                  final completedEvents =
+                                      stats['completedEvents'] ?? 0;
+                                  final upcomingEvents =
+                                      stats['upcomingEvents'] ?? 0;
+                                  final totalParticipants =
+                                      stats['totalParticipants'] ??
+                                          stats['participantCount'] ??
+                                          0;
+
+                                  return GridView.count(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 15,
+                                    mainAxisSpacing: 15,
+                                    childAspectRatio: 1.3,
+                                    children: [
+                                      _statCard(
+                                          "$totalEvents", "TOTAL\nEVENTS"),
+                                      _statCard("$completedEvents",
+                                          "COMPLETED\nEVENTS"),
+                                      _statCard("$upcomingEvents",
+                                          "UPCOMING\nEVENTS"),
+                                      _statCard("$totalParticipants",
+                                          "PARTICIPANTS\nJOINED"),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(height: 35),
-                            // EVENTS LIST Section
                             const Text(
                               "EVENTS LIST",
                               style: TextStyle(
@@ -157,11 +198,66 @@ class HeadEventManagementScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            // Event List Item
-                            _eventListItem("WINTERFEST",
-                                "25-26 FEB , 6:00PM\nVENUE-WE2", "COMPLETED"),
-                            const SizedBox(
-                                height: 100), // Bottom spacing for nav bar
+                            BlocBuilder<EventBloc, EventState>(
+                              builder: (context, state) {
+                                if (state is EventLoading) {
+                                  return const Center(
+                                      child: CircularProgressIndicator());
+                                }
+                                if (state is EventsLoaded) {
+                                  final authState =
+                                      context.read<AuthBloc>().state;
+                                  String? myClubId;
+                                  if (authState is Authenticated) {
+                                    myClubId = authState.user.clubId;
+                                    if (myClubId == null && authState.user.memberships.isNotEmpty) {
+                                      try {
+                                        myClubId = authState.user.memberships.firstWhere(
+                                          (m) => m.role.toUpperCase() == "HEAD",
+                                          orElse: () => authState.user.memberships.first,
+                                        ).clubId;
+                                      } catch (_) {}
+                                    }
+                                  }
+
+                                  final allEvents = [
+                                    ...state.registeredEvents,
+                                    ...state.upcomingEvents
+                                  ];
+                                  final filteredEvents = allEvents
+                                      .where((e) => e.clubId == myClubId)
+                                      .toList();
+                                  if (filteredEvents.isEmpty) {
+                                    return const Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 20),
+                                      child: Text(
+                                        "No events created by your club yet.",
+                                        style: TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontSize: 15),
+                                      ),
+                                    );
+                                  }
+                                  return Column(
+                                    children: filteredEvents.map((event) {
+                                       final status = (event.startTime != null && event.startTime!.isBefore(DateTime.now())) ? "COMPLETED" : "UPCOMING";
+                                       final dateStr = event.startTime != null
+                                           ? "${event.startTime!.day}/${event.startTime!.month} , ${_formatDateTime(event.startTime)}\nVENUE-${event.venue ?? 'WE2'}"
+                                           : "No date set\nVENUE-${event.venue ?? 'WE2'}";
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 12.0),
+                                        child: _eventListItem(
+                                            event.title, dateStr, status),
+                                      );
+                                    }).toList(),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                            const SizedBox(height: 100),
                           ],
                         ),
                       ),
@@ -180,15 +276,9 @@ class HeadEventManagementScreen extends StatelessWidget {
 Widget _statCard(String value, String label) {
   return Container(
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: AppColors.cardColor,
       borderRadius: BorderRadius.circular(25),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black,
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-      ],
+      border: Border.all(color: AppColors.border, width: 1),
     ),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -198,7 +288,7 @@ Widget _statCard(String value, String label) {
           style: const TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF191C32),
+            color: Colors.white,
           ),
         ),
         Text(
@@ -207,7 +297,7 @@ Widget _statCard(String value, String label) {
           style: const TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: Colors.grey,
+            color: AppColors.textSecondary,
           ),
         ),
       ],
@@ -219,15 +309,9 @@ Widget _eventListItem(String title, String details, String status) {
   return Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: AppColors.scaffoldBackground,
       borderRadius: BorderRadius.circular(25),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withAlpha(50),
-          blurRadius: 5,
-          offset: const Offset(0, 2),
-        ),
-      ],
+      border: Border.all(color: AppColors.border, width: 1),
     ),
     child: Row(
       children: [
@@ -240,14 +324,14 @@ Widget _eventListItem(String title, String details, String status) {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: Color(0xFF191C32),
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 details,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -262,17 +346,21 @@ Widget _eventListItem(String title, String details, String status) {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
-            const Icon(Icons.check_circle, color: Colors.green, size: 28),
+            Icon(
+              status == "COMPLETED" ? Icons.check_circle : Icons.schedule,
+              color: status == "COMPLETED" ? Colors.green : AppColors.primary,
+              size: 28,
+            ),
             Text(
               status,
               style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF191C32),
+                color: Colors.white,
               ),
             ),
           ],

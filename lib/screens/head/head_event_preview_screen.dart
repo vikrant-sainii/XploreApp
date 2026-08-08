@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/event/event_bloc.dart';
+import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+import 'package:xplore_app/config/theme.dart';
 
 class HeadEventPreviewScreen extends StatefulWidget {
   final Function(int) changeindex;
@@ -10,11 +14,20 @@ class HeadEventPreviewScreen extends StatefulWidget {
 
 class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
   bool _isEditing = false;
+  bool _isInitialized = false;
   
   late TextEditingController _titleController;
   late TextEditingController _venueController;
   late TextEditingController _timeController;
   late TextEditingController _descriptionController;
+
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return "6.00 pm";
+    final hour = dateTime.hour > 12 ? dateTime.hour - 12 : (dateTime.hour == 0 ? 12 : dateTime.hour);
+    final ampm = dateTime.hour >= 12 ? "pm" : "am";
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return "$hour.$minute $ampm";
+  }
 
   @override
   void initState() {
@@ -38,20 +51,50 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      final authState = context.read<AuthBloc>().state;
+      String? myClubId;
+      if (authState is Authenticated) {
+        myClubId = authState.user.clubId;
+        if (myClubId == null && authState.user.memberships.isNotEmpty) {
+          try {
+            myClubId = authState.user.memberships.firstWhere(
+              (m) => m.role.toUpperCase() == "HEAD",
+              orElse: () => authState.user.memberships.first,
+            ).clubId;
+          } catch (_) {}
+        }
+      }
+      final eventState = context.read<EventBloc>().state;
+      if (eventState is EventsLoaded) {
+        final allEvents = [...eventState.registeredEvents, ...eventState.upcomingEvents];
+        final filteredEvents = allEvents.where((e) => e.clubId == myClubId).toList();
+        if (filteredEvents.isNotEmpty) {
+          final ev = filteredEvents.first;
+          _titleController.text = ev.title;
+          _venueController.text = ev.venue ?? "WE1";
+          _timeController.text = _formatDateTime(ev.startTime);
+          _descriptionController.text = ev.description ?? "";
+        }
+      }
+      _isInitialized = true;
+    }
+
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         scrolledUnderElevation: 0,
         leadingWidth: 60,
-        backgroundColor: const Color(0xFFFF9AB2),
+        backgroundColor: Colors.transparent,
         leading: Row(
           children: [
             const SizedBox(width: 8),
             IconButton(
               iconSize: 30,
               icon: const Icon(Icons.arrow_back),
-              color: Colors.black,
+              color: Colors.white,
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.cardColor,
                 shape: const CircleBorder(),
               ),
               onPressed: () {
@@ -73,8 +116,8 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
             iconSize: 30,
             icon: const Icon(Icons.more_vert),
             onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
-            color: Colors.black,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.cardColor),
+            color: Colors.white,
           ),
           const Padding(padding: EdgeInsets.all(8))
         ],
@@ -84,7 +127,7 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
           final height = constraints.maxHeight;
           final width = constraints.maxWidth;
           return Container(
-            color: const Color(0xFFFF9AB2),
+            color: AppColors.scaffoldBackground,
             child: Stack(
               children: [
                 Align(
@@ -134,11 +177,11 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                         top: 10,
                         right: 20,
                         child: CircleAvatar(
-                          backgroundColor: Colors.white,
+                          backgroundColor: AppColors.primary,
                           child: IconButton(
                             icon: Icon(
                               _isEditing ? Icons.check : Icons.edit,
-                              color: const Color(0xFFFF9AB2),
+                              color: Colors.white,
                             ),
                             onPressed: () {
                               setState(() {
@@ -159,8 +202,12 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                   ),
                   width: width,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(40),
-                    color: const Color(0xFFF7F7FA),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
+                    color: AppColors.cardColor,
+                    border: Border.all(color: AppColors.border, width: 1),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -177,6 +224,7 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                                       letterSpacing: -1,
                                       fontWeight: FontWeight.w500,
                                       fontSize: 23,
+                                      color: Colors.white,
                                     ),
                                     decoration: const InputDecoration(
                                       isDense: true,
@@ -189,6 +237,7 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                                       letterSpacing: -1,
                                       fontWeight: FontWeight.w500,
                                       fontSize: 23,
+                                      color: Colors.white,
                                     ),
                                   ),
                             ),
@@ -201,11 +250,13 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                                     style: const TextStyle(
                                       fontSize: 17,
                                       letterSpacing: -1,
-                                      fontWeight: FontWeight.w500
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white,
                                     ),
                                     decoration: const InputDecoration(
                                       isDense: true,
                                       hintText: "Time",
+                                      hintStyle: TextStyle(color: Colors.white38),
                                     ),
                                   ),
                                 )
@@ -214,7 +265,8 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                                   style: const TextStyle(
                                     fontSize: 17,
                                     letterSpacing: -1,
-                                    fontWeight: FontWeight.w500
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
                                   ),
                                 )
                           ],
@@ -224,18 +276,19 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                           ? TextField(
                               controller: _venueController,
                               style: const TextStyle(
-                                color: Color(0xFF9395A4),
+                                color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w500
                               ),
                               decoration: const InputDecoration(
                                 isDense: true,
                                 hintText: "Enter Venue",
+                                hintStyle: TextStyle(color: Colors.white38),
                               ),
                             )
                           : Text(
                               _venueController.text,
                               style: const TextStyle(
-                                color: Color(0xFF9395A4),
+                                color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w500
                               ),
                             ),
@@ -246,6 +299,7 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                             letterSpacing: -1,
                             fontWeight: FontWeight.w500,
                             fontSize: 23,
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -254,18 +308,19 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                               controller: _descriptionController,
                               maxLines: null,
                               style: const TextStyle(
-                                color: Color(0xFF9395A4),
+                                color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w500
                               ),
                               decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 hintText: "Enter Description",
+                                hintStyle: TextStyle(color: Colors.white38),
                               ),
                             )
                           : Text(
                               _descriptionController.text,
                               style: const TextStyle(
-                                color: Color(0xFF9395A4),
+                                color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w500
                               ),
                             ),
@@ -276,6 +331,7 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                             letterSpacing: -1,
                             fontWeight: FontWeight.w500,
                             fontSize: 23,
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -293,6 +349,7 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
                             letterSpacing: -1,
                             fontWeight: FontWeight.w500,
                             fontSize: 23,
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -319,7 +376,7 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
   Widget _buildHighlightCircle(String asset) {
     return CircleAvatar(
       radius: 45,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.scaffoldBackground,
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: ClipOval(

@@ -1,30 +1,189 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/event/event_bloc.dart';
+import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+import 'package:xplore_app/blocs/head/head_bloc.dart';
+import 'package:xplore_app/services/event_service.dart';
+import 'package:xplore_app/config/theme.dart';
 
-class HeadAddEventScreen extends StatelessWidget {
+class HeadAddEventScreen extends StatefulWidget {
   final Function(int) changeindex;
   const HeadAddEventScreen({super.key, required this.changeindex});
 
   @override
+  State<HeadAddEventScreen> createState() => _HeadAddEventScreenState();
+}
+
+class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _startDateController = TextEditingController();
+  final _startTimeController = TextEditingController();
+  final _endDateController = TextEditingController();
+  final _endTimeController = TextEditingController();
+  final _venueController = TextEditingController();
+  final _linkController = TextEditingController();
+  final _posterController = TextEditingController();
+  final _videoController = TextEditingController();
+  final _maxParticipantsController = TextEditingController();
+  final _contactController = TextEditingController();
+
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _startDateController.dispose();
+    _startTimeController.dispose();
+    _endDateController.dispose();
+    _endTimeController.dispose();
+    _venueController.dispose();
+    _linkController.dispose();
+    _posterController.dispose();
+    _videoController.dispose();
+    _maxParticipantsController.dispose();
+    _contactController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitEvent(bool isDraft) async {
+    if (_titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Event Title cannot be empty")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authState = context.read<AuthBloc>().state;
+      String? myClubId;
+      if (authState is Authenticated) {
+        myClubId = authState.user.clubId;
+        if (myClubId == null && authState.user.memberships.isNotEmpty) {
+          try {
+            myClubId = authState.user.memberships.firstWhere(
+              (m) => m.role.toUpperCase() == "HEAD",
+              orElse: () => authState.user.memberships.first,
+            ).clubId;
+          } catch (_) {}
+        }
+      }
+
+      final now = DateTime.now();
+      DateTime startDateTime = now.add(const Duration(days: 2));
+      DateTime endDateTime = now.add(const Duration(days: 2, hours: 2));
+
+      try {
+        if (_startDateController.text.isNotEmpty) {
+          final dateParts = _startDateController.text.split('-');
+          final timeParts = _startTimeController.text.isNotEmpty 
+              ? _startTimeController.text.split(':') 
+              : ['18', '00'];
+          if (dateParts.length == 3) {
+            startDateTime = DateTime(
+              int.parse(dateParts[0]),
+              int.parse(dateParts[1]),
+              int.parse(dateParts[2]),
+              timeParts.isNotEmpty ? int.parse(timeParts[0]) : 18,
+              timeParts.length > 1 ? int.parse(timeParts[1]) : 0,
+            );
+          }
+        }
+      } catch (_) {}
+
+      try {
+        if (_endDateController.text.isNotEmpty) {
+          final dateParts = _endDateController.text.split('-');
+          final timeParts = _endTimeController.text.isNotEmpty 
+              ? _endTimeController.text.split(':') 
+              : ['20', '00'];
+          if (dateParts.length == 3) {
+            endDateTime = DateTime(
+              int.parse(dateParts[0]),
+              int.parse(dateParts[1]),
+              int.parse(dateParts[2]),
+              timeParts.isNotEmpty ? int.parse(timeParts[0]) : 20,
+              timeParts.length > 1 ? int.parse(timeParts[1]) : 0,
+            );
+          }
+        }
+      } catch (_) {}
+
+      final maxParticipants = int.tryParse(_maxParticipantsController.text) ?? 100;
+
+      final payload = {
+        "title": _titleController.text.trim(),
+        "description": _descriptionController.text.trim(),
+        "venue": _venueController.text.trim().isNotEmpty ? _venueController.text.trim() : "WE2",
+        "startTime": startDateTime.toIso8601String(),
+        "endTime": endDateTime.toIso8601String(),
+        "totalSeats": maxParticipants,
+        "entryFee": 0.0,
+        "imageLocation": _posterController.text.trim().isNotEmpty 
+            ? _posterController.text.trim() 
+            : "assets/workshopevent.png",
+        "imageUrl": _posterController.text.trim().isNotEmpty 
+            ? _posterController.text.trim() 
+            : "assets/workshopevent.png",
+        if (myClubId != null) "clubId": myClubId,
+        "allowedPrograms": ["BTECH", "MTECH"],
+        "allowedYears": ["1", "2", "3", "4"],
+        "allowedBranches": ["CSE", "ECE", "ME", "CE"],
+        "reviewStatus": isDraft ? "draft" : "approved",
+      };
+
+      await EventService().createEvent(payload);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isDraft ? "Event saved as draft!" : "Event published successfully!")),
+      );
+
+      context.read<EventBloc>().add(FetchAllEvents());
+      context.read<HeadBloc>().add(FetchDashboardStats());
+
+      widget.changeindex(3);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to submit event: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         scrolledUnderElevation: 0,
         leadingWidth: 60,
-        backgroundColor: Color(0xFF191C32),
+        backgroundColor: Colors.transparent,
         leading: Row(
           children: [
-            const SizedBox(width: 8), // This adds your space on the left
+            const SizedBox(width: 8),
             IconButton(
               iconSize: 30,
               icon: const Icon(Icons.arrow_back),
-              color: Colors.black,
-              // This is the correct way to style an IconButton
+              color: Colors.white,
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white,
-                shape: const CircleBorder(), // Makes the background a circle
+                backgroundColor: AppColors.cardColor,
+                shape: const CircleBorder(),
               ),
               onPressed: () {
-                changeindex(0);
+                widget.changeindex(0);
               },
             ),
           ],
@@ -32,381 +191,380 @@ class HeadAddEventScreen extends StatelessWidget {
         actions: [
           IconButton(
             iconSize: 30,
-            icon: Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert),
             onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
-            color: Colors.black,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.cardColor),
+            color: Colors.white,
           ),
-          Padding(padding: EdgeInsets.all(8))
+          const Padding(padding: EdgeInsets.all(8))
         ],
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final height = constraints.maxHeight;
           final width = constraints.maxWidth;
-          return Container(
-            color: Color(0xFF191C32),
-            child: Stack(
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    // Add padding to prevent it from touching the edge
-                    padding: const EdgeInsets.only(top: 16, left: 24),
-                    child: Text(
-                      "Add\nEvent",
-                      style: TextStyle(
-                        color: Colors.white,
-                        letterSpacing: -1,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 37,
+          return Stack(
+            children: [
+              Container(
+                color: AppColors.scaffoldBackground,
+                child: Stack(
+                  children: [
+                    const Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 16, left: 24),
+                        child: Text(
+                          "Add\nEvent",
+                          style: TextStyle(
+                            color: Colors.white,
+                            letterSpacing: -1,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 37,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Image.asset(
+                        "assets/pillar.png",
+                        height: height * 0.25,
+                        width: width * 0.5,
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(
+                          top: height * 0.2,
+                          left: width * 0.02,
+                          right: width * 0.02),
+                      width: width,
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(40),
+                          topRight: Radius.circular(40),
+                        ),
+                        color: AppColors.cardColor,
+                        border: Border.all(color: AppColors.border, width: 1),
+                      ),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: height * 0.03,
+                          ),
+                          Container(
+                            height: height * 0.7,
+                            margin: EdgeInsets.symmetric(
+                              horizontal: width * 0.06,
+                            ),
+                            child: ListView(
+                              children: [
+                                const Text(
+                                  "EVENT INFO",
+                                  style: TextStyle(
+                                    letterSpacing: -1,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 23,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(height: height * 0.02),
+                                _buildContainer1(
+                                  "Event Title",
+                                  "Event Description",
+                                  "Event Name",
+                                  "Event Details",
+                                  _titleController,
+                                  _descriptionController,
+                                ),
+                                SizedBox(height: height * 0.02),
+                                const Text(
+                                  "SCHEDULE SECTION",
+                                  style: TextStyle(
+                                    letterSpacing: -1,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 23,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(height: height * 0.02),
+                                _buildContainer2(
+                                  "Start Date (YYYY-MM-DD)",
+                                  "Start Time (HH:MM)",
+                                  "End Date (YYYY-MM-DD)",
+                                  "End Time (HH:MM)",
+                                  _startDateController,
+                                  _startTimeController,
+                                  _endDateController,
+                                  _endTimeController,
+                                ),
+                                SizedBox(height: height * 0.02),
+                                const Text(
+                                  "LOCATION SECTION",
+                                  style: TextStyle(
+                                    letterSpacing: -1,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 23,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(height: height * 0.02),
+                                _buildContainer1(
+                                  "PHYSICAL EVENT",
+                                  "VIRTUAL EVENT",
+                                  "Venue Name",
+                                  "Meeting Link",
+                                  _venueController,
+                                  _linkController,
+                                ),
+                                SizedBox(height: height * 0.02),
+                                const Text(
+                                  "MEDIA SECTION",
+                                  style: TextStyle(
+                                    letterSpacing: -1,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 23,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(height: height * 0.02),
+                                _buildContainer1(
+                                  "Upload Event Poster URL",
+                                  "Upload Video URL (Optional)",
+                                  "Image URL",
+                                  "Video URL",
+                                  _posterController,
+                                  _videoController,
+                                ),
+                                SizedBox(height: height * 0.02),
+                                const Text(
+                                  "ADDITIONAL OPTIONS",
+                                  style: TextStyle(
+                                    letterSpacing: -1,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 23,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(height: height * 0.02),
+                                _buildContainer1(
+                                  "MAX PARTICIPANTS",
+                                  "CONTACT INFO",
+                                  "Max Number",
+                                  "Contact Number",
+                                  _maxParticipantsController,
+                                  _contactController,
+                                ),
+                                SizedBox(height: height * 0.05),
+                                _buildSubmitButton("SAVE AS DRAFT", () => _submitEvent(true)),
+                                SizedBox(height: height * 0.02),
+                                _buildSubmitButton("PUBLISH EVENT", () => _submitEvent(false)),
+                                const SizedBox(height: 100),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                // 2. Align the Image to the top-right
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Image.asset(
-                    "assets/pillar.png",
-                    height: height * 0.25,
-                    width: width * 0.5,
-                  ),
-                ),
+              ),
+              if (_isLoading)
                 Container(
-                  margin: EdgeInsets.only(
-                      top: height * 0.2,
-                      left: width * 0.02,
-                      right: width * 0.02),
-                  width: width,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(40),
-                    color: Color(0xFFF7F7FA),
-                  ),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: height * 0.03,
-                      ),
-                      Container(
-                        height: height * 0.7,
-                        margin: EdgeInsets.symmetric(
-                          horizontal: width * 0.06,
-                        ),
-                        child: ListView(
-                          children: [
-                            Text(
-                              "EVENT INFO",
-                              style: TextStyle(
-                                letterSpacing: -1,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 23,
-                              ),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            mycontainer1(
-                              context,
-                              "Event Title",
-                              "Event Description",
-                              "Event Name",
-                              "Event Details",
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            Text(
-                              "SCHEDULE SECTION",
-                              style: TextStyle(
-                                letterSpacing: -1,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 23,
-                              ),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            mycontainer2(
-                              context,
-                              "Start Date",
-                              "Start Time",
-                              "End Date",
-                              "End Time",
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            Text(
-                              "LOCATION SECTION",
-                              style: TextStyle(
-                                letterSpacing: -1,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 23,
-                              ),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            mycontainer1(
-                              context,
-                              "PHYSICAL EVENT",
-                              "VIRTUAL EVENT",
-                              "Venue Name",
-                              "Meeting Link",
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            Text(
-                              "MEDIA SECTION",
-                              style: TextStyle(
-                                letterSpacing: -1,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 23,
-                              ),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            mycontainer1(
-                              context,
-                              "Upload Event Poster",
-                              "Upload Video (Optional)",
-                              "Image File Upload",
-                              "Video File Upload",
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            Text(
-                              "ADDTIONAL OPTIONS",
-                              style: TextStyle(
-                                letterSpacing: -1,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 23,
-                              ),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            mycontainer1(
-                              context,
-                              "MAX PARTICIPANTS",
-                              "CONTACT INFO",
-                              "Max Number",
-                              "Contact Number",
-                            ),
-                            SizedBox(
-                              height: height * 0.05,
-                            ),
-                            mybutton("SAVE AS DRAFT"),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            mybutton("PUBLISH EVENT"),
-                          ],
-                        ),
-                      ),
-                    ],
+                  color: Colors.black45,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
                   ),
                 ),
-              ],
-            ),
+            ],
           );
         },
       ),
     );
   }
-}
 
-ElevatedButton mybutton(String name) {
-  return ElevatedButton(
-    onPressed: () {},
-    style: ButtonStyle(
-      backgroundColor: WidgetStatePropertyAll(Color(0xFF191C32)),
-      fixedSize: WidgetStatePropertyAll(Size.fromHeight(65),),
-    ),
-    child: Text(
-      name,
-      selectionColor: Colors.white,
-      style: TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
+  Widget _buildSubmitButton(String label, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        minimumSize: const Size.fromHeight(65),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
       ),
-    ),
-  );
-}
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+    );
+  }
 
-InputDecoration myDecoration(String hintText) {
-  return InputDecoration(
-    filled: true,
-    fillColor: Colors.white,
-    hintText: hintText,
-    hintStyle: TextStyle(color: Colors.grey),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(20)),
-      borderSide: BorderSide(color: Colors.white), // <- when not focused
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(20)),
-      borderSide: BorderSide(color: Colors.grey, width: 1), // <- when focused
-    ),
-  );
-}
+  InputDecoration _myDecoration(String hintText) {
+    return InputDecoration(
+      filled: true,
+      fillColor: AppColors.scaffoldBackground,
+      hintText: hintText,
+      hintStyle: const TextStyle(color: Colors.white38),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
+        borderSide: BorderSide(color: AppColors.border),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+        borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+      ),
+    );
+  }
 
-Container mycontainer1(BuildContext context, String title1, String title2,
-    String hint1, String hint2) {
-  final double height = MediaQuery.of(context).size.height;
-  final double width = MediaQuery.of(context).size.width;
-  return Container(
-    padding: EdgeInsets.all(16),
-    width: width,
-    decoration: BoxDecoration(
-        color: Color(0xFF191C32), borderRadius: BorderRadius.circular(20)),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title1,
-          style: TextStyle(
-              letterSpacing: -1,
+  Widget _buildContainer1(String title1, String title2, String hint1, String hint2,
+      TextEditingController controller1, TextEditingController controller2) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.scaffoldBackground,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title1,
+            style: const TextStyle(
               fontWeight: FontWeight.w500,
               fontSize: 20,
-              color: Colors.white),
-        ),
-        SizedBox(
-          height: height * 0.01,
-        ),
-        TextField(
-          decoration: myDecoration(
-            hint1,
+              color: Colors.white,
+            ),
           ),
-        ),
-        SizedBox(
-          height: height * 0.02,
-        ),
-        Text(
-          title2,
-          style: TextStyle(
-              letterSpacing: -1,
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller1,
+            style: const TextStyle(color: Colors.white),
+            decoration: _myDecoration(hint1),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title2,
+            style: const TextStyle(
               fontWeight: FontWeight.w500,
               fontSize: 20,
-              color: Colors.white),
-        ),
-        SizedBox(
-          height: height * 0.01,
-        ),
-        TextField(
-          decoration: myDecoration(
-            hint2,
+              color: Colors.white,
+            ),
           ),
-        )
-      ],
-    ),
-  );
-}
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller2,
+            style: const TextStyle(color: Colors.white),
+            decoration: _myDecoration(hint2),
+          )
+        ],
+      ),
+    );
+  }
 
-Container mycontainer2(BuildContext context, String title1, String title2,
-    String title3, String title4) {
-  final double height = MediaQuery.of(context).size.height;
-  final double width = MediaQuery.of(context).size.width;
-  return Container(
-    padding: EdgeInsets.all(16),
-    width: width,
-    decoration: BoxDecoration(
-        color: Color(0xFF191C32), borderRadius: BorderRadius.circular(20)),
-    child: Column(
-      // crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title1,
-                    style: TextStyle(
-                        letterSpacing: -1,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 20,
-                        color: Colors.white),
-                  ),
-                  SizedBox(
-                    height: height * 0.01,
-                  ),
-                  TextField(
-                    decoration: myDecoration(
+  Widget _buildContainer2(
+      String title1,
+      String title2,
+      String title3,
+      String title4,
+      TextEditingController controller1,
+      TextEditingController controller2,
+      TextEditingController controller3,
+      TextEditingController controller4) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.scaffoldBackground,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border, width: 1),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       title1,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height * 0.01,
-                  ),
-                  Text(
-                    title2,
-                    style: TextStyle(
-                        letterSpacing: -1,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 20,
-                        color: Colors.white),
-                  ),
-                  TextField(
-                    decoration: myDecoration(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: controller1,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: _myDecoration("e.g. 2026-08-15"),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
                       title2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: width * 0.05,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title3,
-                    style: TextStyle(
-                        letterSpacing: -1,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 20,
-                        color: Colors.white),
-                  ),
-                  SizedBox(
-                    height: height * 0.01,
-                  ),
-                  TextField(
-                    decoration: myDecoration(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: controller2,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: _myDecoration("e.g. 18:00"),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       title3,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height * 0.01,
-                  ),
-                  Text(
-                    title4,
-                    style: TextStyle(
-                        letterSpacing: -1,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 20,
-                        color: Colors.white),
-                  ),
-                  TextField(
-                    decoration: myDecoration(
-                      title4,
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: controller3,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: _myDecoration("e.g. 2026-08-15"),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      title4,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: controller4,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: _myDecoration("e.g. 20:00"),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

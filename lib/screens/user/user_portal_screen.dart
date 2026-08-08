@@ -4,6 +4,7 @@ import 'package:xplore_app/screens/user/user_registered_events_screen.dart';
 import 'package:xplore_app/screens/user/user_upcoming_events_screen.dart';
 import 'package:xplore_app/screens/user/user_home_screen.dart';
 import 'package:xplore_app/screens/user/user_profile_screen.dart';
+import 'package:xplore_app/config/theme.dart';
 
 class UserPortalScreen extends StatefulWidget {
   const UserPortalScreen({super.key});
@@ -38,8 +39,6 @@ class _UserPortalScreenState extends State<UserPortalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color.fromRGBO(245, 245, 245, 1), // Optional for contrast
       body: Stack(
         children: [
           screen[currentindex],
@@ -73,11 +72,11 @@ class CustomBottomNavBar extends StatelessWidget {
       child: Container(
         height: 70,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardColor,
           borderRadius: BorderRadius.circular(40),
           border: Border.all(
-            color: const Color.fromRGBO(0, 0, 0, 0.69),
-            width: 1,
+            color: AppColors.border,
+            width: 1.5,
           ),
         ),
         child: Row(
@@ -87,7 +86,7 @@ class CustomBottomNavBar extends StatelessWidget {
               onPressed: () => onTap(0),
               icon: const Icon(Icons.home),
               iconSize: 30,
-              color: (currentindex == 0) ? Colors.black : Colors.grey,
+              color: (currentindex == 0) ? AppColors.primary : AppColors.textSecondary,
             ),
             IconButton(
               onPressed: () => onTap(1),
@@ -96,7 +95,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 width: 26,
                 height: 26,
                 colorFilter: ColorFilter.mode(
-                  (currentindex == 1) ? Colors.black : Colors.grey,
+                  (currentindex == 1) ? AppColors.primary : AppColors.textSecondary,
                   BlendMode.srcIn,
                 ),
               ),
@@ -105,13 +104,13 @@ class CustomBottomNavBar extends StatelessWidget {
               onPressed: () => onTap(2),
               icon: const Icon(Icons.group),
               iconSize: 30,
-              color: (currentindex == 2) ? Colors.black : Colors.grey,
+              color: (currentindex == 2) ? AppColors.primary : AppColors.textSecondary,
             ),
             IconButton(
               onPressed: () => onTap(3),
               icon: const Icon(Icons.person),
               iconSize: 30,
-              color: (currentindex == 3) ? Colors.black : Colors.grey,
+              color: (currentindex == 3) ? AppColors.primary : AppColors.textSecondary,
             ),
           ],
         ),

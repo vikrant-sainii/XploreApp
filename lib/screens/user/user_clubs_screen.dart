@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:xplore_app/blocs/club/club_bloc.dart';
+import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import '../head/head_portal_screen.dart';
+import 'package:xplore_app/config/theme.dart';
 
 class UserClubsScreen extends StatelessWidget {
   const UserClubsScreen({super.key});
@@ -10,26 +11,36 @@ class UserClubsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7FA),
       appBar: AppBar(
         title: const Text(
           "My Clubs",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.scaffoldBackground,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: BlocBuilder<ClubBloc, ClubState>(
+      body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
-          if (state is ClubLoading) {
+          if (state is AuthLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is ClubError) {
-            return Center(child: Text(state.message));
-          } else if (state is ClubsLoaded) {
+          }
+          if (state is Authenticated) {
+            final memberships = state.user.memberships;
+            if (memberships.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    "You are not a member of any clubs yet.",
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                  ),
+                ),
+              );
+            }
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -40,25 +51,30 @@ class UserClubsScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey,
+                      color: AppColors.textSecondary,
                       letterSpacing: 1.2,
                     ),
                   ),
                 ),
-                ...state.clubs.map((club) => Padding(
+                ...memberships.map((membership) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: _buildClubTile(
                         context,
-                        name: club.name,
-                        role: club.role ?? 'MEMBER',
-                        image: club.image,
-                        isHead: club.role == "HEAD",
+                        name: membership.clubName ?? "Unknown Club",
+                        role: membership.role,
+                        image: membership.clubLogo ?? "assets/gdgc.png",
+                        isHead: membership.role.toUpperCase() == "HEAD",
                       ),
                     )),
               ],
             );
           }
-          return const SizedBox.shrink();
+          return const Center(
+            child: Text(
+              "Please log in to view your clubs.",
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+            ),
+          );
         },
       ),
     );
@@ -87,22 +103,18 @@ class UserClubsScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardColor,
           borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: Border.all(color: AppColors.border, width: 1),
         ),
         child: Row(
           children: [
             CircleAvatar(
               radius: 28,
-              backgroundColor: const Color(0xFFF7F7FA),
-              backgroundImage: AssetImage(image),
+              backgroundColor: AppColors.scaffoldBackground,
+              backgroundImage: image.startsWith('http://') || image.startsWith('https://')
+                  ? NetworkImage(image)
+                  : AssetImage(image) as ImageProvider,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -114,13 +126,13 @@ class UserClubsScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
-                      color: Color(0xFF191C32),
+                      color: Colors.white,
                     ),
                   ),
                   Text(
                     "Role: $role",
                     style: TextStyle(
-                      color: isHead ? Colors.orange : Colors.grey,
+                      color: isHead ? AppColors.primary : AppColors.textSecondary,
                       fontWeight: isHead ? FontWeight.bold : FontWeight.normal,
                       fontSize: 13,
                     ),
@@ -131,7 +143,7 @@ class UserClubsScreen extends StatelessWidget {
             Icon(
               FontAwesomeIcons.chevronRight,
               size: 16,
-              color: isHead ? const Color(0xFFF7931A) : Colors.grey,
+              color: isHead ? AppColors.primary : AppColors.textSecondary,
             ),
           ],
         ),

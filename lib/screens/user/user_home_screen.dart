@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
 import 'package:xplore_app/screens/user/user_clubs_screen.dart';
 import 'package:xplore_app/screens/user/user_event_details_screen.dart';
+import 'package:xplore_app/config/theme.dart';
 
 class UserHomeScreen extends StatelessWidget {
   final Function(int) changeindex;
@@ -13,7 +14,7 @@ class UserHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: customAppBar(MediaQuery.of(context).size.width, context),
-      backgroundColor: Color(0xFFF7F7FA),
+      backgroundColor: AppColors.scaffoldBackground,
       body: LayoutBuilder(
         builder: (context, constraints) {
           final height = constraints.maxHeight;
@@ -38,8 +39,8 @@ class UserHomeScreen extends StatelessWidget {
                     child: TextButton(
                       onPressed: () {},
                       style: TextButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 10),
                       ),
@@ -59,7 +60,7 @@ class UserHomeScreen extends StatelessWidget {
                 width: width,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
-                    color: Color(0xFFF7F7FA)),
+                    color: AppColors.scaffoldBackground),
                 child: Column(
                   children: [
                     Row(
@@ -73,7 +74,8 @@ class UserHomeScreen extends StatelessWidget {
                           style: TextStyle(
                               letterSpacing: -1,
                               fontWeight: FontWeight.w500,
-                              fontSize: 30),
+                              fontSize: 30,
+                              color: Colors.white),
                         ),
                       ],
                     ),
@@ -81,34 +83,45 @@ class UserHomeScreen extends StatelessWidget {
                       height: height * 0.02,
                     ),
                     Container(
-                      height: height * 0.17,
                       margin: EdgeInsets.symmetric(
                         horizontal: width * 0.05,
                       ),
                       child: BlocBuilder<EventBloc, EventState>(
                         builder: (context, state) {
                           if (state is EventLoading) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                                child: CircularProgressIndicator());
                           } else if (state is EventError) {
                             return Center(child: Text(state.message));
                           } else if (state is EventsLoaded) {
-                            return ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: state.registeredEvents.length,
-                              padding: EdgeInsets.only(),
-                              scrollDirection: Axis.vertical,
-                              itemBuilder: (BuildContext context, int index) {
-                                final event = state.registeredEvents[index];
+                            if (state.registeredEvents.isEmpty) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8.0),
+                                child: Text("No registered events found.", style: TextStyle(color: Colors.white70)),
+                              );
+                            }
+                            return Column(
+                              children: state.registeredEvents.map((event) {
                                 return EventTile(
-                                  imagelocation: event.imageLocation ?? 'assets/octave.png',
+                                  imagelocation: event.imageLocation ??
+                                      'assets/octave.png',
                                   title: event.title,
                                   subtitle: event.subtitle ?? '',
                                   onTap: () {
-                                    changeindex(1);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => UserEventDetailsScreen(
+                                          event: event,
+                                          changeindex: changeindex,
+                                          preview: EventDraft.no,
+                                        ),
+                                      ),
+                                    );
                                   },
                                   type: TrailingType.typeRegistered,
                                 );
-                              },
+                              }).toList(),
                             );
                           }
                           return const SizedBox.shrink();
@@ -116,7 +129,9 @@ class UserHomeScreen extends StatelessWidget {
                       ),
                     ),
                     XploreTile(
-                      onTap: () {},
+                      onTap: () {
+                        changeindex(1);
+                      },
                     ),
                     SizedBox(
                       height: height * 0.02,
@@ -127,12 +142,13 @@ class UserHomeScreen extends StatelessWidget {
                         SizedBox(
                           width: width * 0.05,
                         ),
-                        Text(
+                        const Text(
                           "Upcoming Events",
                           style: TextStyle(
                               letterSpacing: -1,
                               fontWeight: FontWeight.w500,
-                              fontSize: 30),
+                              fontSize: 30,
+                              color: Colors.white),
                         ),
                       ],
                     ),
@@ -140,26 +156,28 @@ class UserHomeScreen extends StatelessWidget {
                       height: height * 0.02,
                     ),
                     Container(
-                      height: height * 0.17,
                       margin: EdgeInsets.symmetric(
                         horizontal: width * 0.05,
                       ),
                       child: BlocBuilder<EventBloc, EventState>(
                         builder: (context, state) {
                           if (state is EventLoading) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                                child: CircularProgressIndicator());
                           } else if (state is EventError) {
                             return Center(child: Text(state.message));
                           } else if (state is EventsLoaded) {
-                            return ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: state.upcomingEvents.length,
-                              padding: EdgeInsets.only(),
-                              scrollDirection: Axis.vertical,
-                              itemBuilder: (BuildContext context, int index) {
-                                final event = state.upcomingEvents[index];
+                            if (state.upcomingEvents.isEmpty) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8.0),
+                                child: Text("No upcoming events found.", style: TextStyle(color: Colors.white70)),
+                              );
+                            }
+                            return Column(
+                              children: state.upcomingEvents.map((event) {
                                 return EventTile(
-                                  imagelocation: event.imageLocation ?? 'assets/octave.png',
+                                  imagelocation: event.imageLocation ??
+                                      'assets/octave.png',
                                   title: event.title,
                                   subtitle: event.subtitle ?? '',
                                   onTap: () {
@@ -167,15 +185,16 @@ class UserHomeScreen extends StatelessWidget {
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => UserEventDetailsScreen(
-                                          changeindex: (val) {}, 
-                                          preview: EventDraft.no
-                                        )
+                                          event: event,
+                                          changeindex: changeindex,
+                                          preview: EventDraft.no,
+                                        ),
                                       ),
                                     );
                                   },
                                   type: TrailingType.typeUpcoming,
                                 );
-                              },
+                              }).toList(),
                             );
                           }
                           return const SizedBox.shrink();
@@ -194,7 +213,7 @@ class UserHomeScreen extends StatelessWidget {
 }
 
 //functions for optimisation
-enum TrailingType{ typeUpcoming, typeRegistered }
+enum TrailingType { typeUpcoming, typeRegistered }
 
 Widget buildTrailing(TrailingType type, VoidCallback? onTap) {
   switch (type) {
@@ -206,18 +225,24 @@ Widget buildTrailing(TrailingType type, VoidCallback? onTap) {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("5:30 PM", style: TextStyle(fontSize: 12)),
+              Text("5:30 PM",
+                  style:
+                      TextStyle(fontSize: 12, color: AppColors.textSecondary)),
             ],
           ),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(FontAwesomeIcons.angleRight, size: 14, color: Colors.orange),
+              Icon(FontAwesomeIcons.angleRight,
+                  size: 14, color: AppColors.primary),
               GestureDetector(
                 onTap: onTap,
                 child: Text(
                   "See More Info",
-                  style: TextStyle(letterSpacing: -1, fontSize: 12),
+                  style: TextStyle(
+                      letterSpacing: -1,
+                      fontSize: 12,
+                      color: AppColors.textPrimary),
                 ),
               ),
             ],
@@ -228,7 +253,7 @@ Widget buildTrailing(TrailingType type, VoidCallback? onTap) {
       return IconButton(
         onPressed: onTap,
         icon: Icon(FontAwesomeIcons.angleRight),
-        color: Color(0xFFF7931A),
+        color: AppColors.primary,
       );
   }
 }
@@ -253,26 +278,69 @@ class EventTile extends StatelessWidget {
     final maxHeight = MediaQuery.sizeOf(context).height;
     final maxWidth = MediaQuery.sizeOf(context).width;
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 2),
+      margin: EdgeInsets.symmetric(vertical: 4),
       width: 0.9 * maxWidth,
-      height: 0.08 * maxHeight,
+      height: 0.1 * maxHeight,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppColors.border, width: 1),
       ),
-      child: ListTile(
-          leading: Image.asset(
-            imagelocation,
-          ),
-          title: Text(
-            title,
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            subtitle,
-            style: TextStyle(color: Color(0xFF9395A4)),
-          ),
-          trailing: buildTrailing(type, onTap)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(25),
+              child: imagelocation.startsWith('http://') ||
+                      imagelocation.startsWith('https://')
+                  ? Image.network(
+                      imagelocation,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image, color: Colors.grey),
+                    )
+                  : Image.asset(
+                      imagelocation,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image, color: Colors.grey),
+                    ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 16),
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            buildTrailing(type, onTap),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -300,8 +368,9 @@ class XploreTile extends StatelessWidget {
         vertical: 3,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppColors.border, width: 1),
       ),
       child: Row(
         children: [
@@ -312,7 +381,7 @@ class XploreTile extends StatelessWidget {
                 title,
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
-                  color: Colors.black,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -322,7 +391,7 @@ class XploreTile extends StatelessWidget {
             child: IconButton(
               onPressed: onTap,
               icon: Icon(FontAwesomeIcons.angleRight),
-              color: Color(0xFFF7931A),
+              color: AppColors.primary,
             ),
           ),
         ],
@@ -330,7 +399,6 @@ class XploreTile extends StatelessWidget {
     );
   }
 }
-
 
 PreferredSizeWidget customAppBar(double width, BuildContext context) {
   return PreferredSize(
@@ -344,7 +412,7 @@ PreferredSizeWidget customAppBar(double width, BuildContext context) {
             const Icon(
               Icons.home,
               size: 32,
-              color: Colors.black,
+              color: Colors.white,
             ),
             SizedBox(width: width * 0.04),
             const Text(
@@ -352,13 +420,13 @@ PreferredSizeWidget customAppBar(double width, BuildContext context) {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
             const Spacer(), // pushes logout button to right
             IconButton(
               iconSize: 28,
-              icon: const Icon(Icons.apps),
+              icon: const Icon(Icons.apps, color: Colors.white),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -373,4 +441,3 @@ PreferredSizeWidget customAppBar(double width, BuildContext context) {
     ),
   );
 }
-

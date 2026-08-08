@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/screens/user/user_portal_screen.dart';
+import 'package:xplore_app/screens/head/head_portal_screen.dart';
 import 'package:xplore_app/screens/unused/forgot_password_roll_screen.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+import 'package:xplore_app/config/theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,10 +46,17 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const UserPortalScreen()),
-            );
+            if (state.role == 'club') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HeadPortalScreen()),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const UserPortalScreen()),
+              );
+            }
           } else if (state is Needs2FA) {
             // TODO: Navigate to your OTP screen, passing state.email
             _showSnackBar('OTP sent to ${state.email}');
@@ -60,7 +69,6 @@ class _LoginScreenState extends State<LoginScreen> {
             FocusScope.of(context).unfocus();
           },
           child: Scaffold(
-            backgroundColor: const Color.fromRGBO(246, 247, 250, 1),
             body: Stack(
               children: [
                 ListView(
@@ -75,9 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: const [
                         Text(
                           "LOGIN",
-                          selectionColor: Color(0xFF1D1049),
+                          selectionColor: AppColors.primary,
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 30),
+                              fontWeight: FontWeight.bold, fontSize: 30, color: Colors.white),
                         ),
                       ],
                     ),
@@ -90,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 60,
                             child: TextField(
                               controller: _emailController,
-                              cursorColor: const Color(0xFF1D1049),
+                              cursorColor: AppColors.primary,
                               obscureText: false,
                               enabled: true,
                               keyboardType: TextInputType.emailAddress,
@@ -102,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 10),
                           TextField(
                             controller: _passwordController,
-                            cursorColor: const Color(0xFF1D1049),
+                            cursorColor: AppColors.primary,
                             obscureText: true,
                             enabled: true,
                             decoration:
@@ -117,15 +125,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.all(25),
                       child: ElevatedButton(
                         onPressed: _handleStudentLogin,
-                        style: ButtonStyle(
-                          backgroundColor:
-                              WidgetStateProperty.all(const Color(0xFF191C32)),
-                          fixedSize:
-                              const WidgetStatePropertyAll(Size.fromHeight(65)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          minimumSize: const Size.fromHeight(65),
                         ),
                         child: const Text(
                           "LOGIN",
-                          selectionColor: Colors.white,
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -147,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text(
                           "FORGOT PASSWORD?",
                           style: TextStyle(
-                            color: Color(0xFF000000),
+                            color: AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -184,29 +189,31 @@ InputDecoration myDecoration(String hintText, IconData youricon) {
     contentPadding: const EdgeInsets.symmetric(vertical: 20),
     prefixIcon: Container(
       margin: const EdgeInsets.all(8),
-      decoration:
-          const BoxDecoration(color: Color(0xFFDEF5E9), shape: BoxShape.circle),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.15),
+        shape: BoxShape.circle,
+      ),
       child: Icon(
         size: 20,
         youricon,
-        color: const Color(0xFF5FC88F),
+        color: AppColors.primary,
       ),
     ),
     filled: true,
-    fillColor: Colors.white,
+    fillColor: AppColors.cardColor,
     hintText: hintText,
-    hintStyle: const TextStyle(color: Colors.grey),
+    hintStyle: const TextStyle(color: AppColors.textSecondary),
     enabledBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: Colors.white),
+      borderSide: BorderSide(color: AppColors.border),
     ),
     focusedBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: Colors.grey, width: 1),
+      borderSide: BorderSide(color: AppColors.primary, width: 1.5),
     ),
     disabledBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: Colors.grey),
+      borderSide: BorderSide(color: AppColors.border),
     ),
   );
 }

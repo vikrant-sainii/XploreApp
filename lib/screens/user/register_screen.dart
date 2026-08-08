@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import 'package:xplore_app/screens/user/login_screen.dart';
 import 'package:xplore_app/screens/user/user_portal_screen.dart';
+import 'package:xplore_app/config/theme.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -85,7 +86,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             FocusScope.of(context).unfocus();
           },
           child: Scaffold(
-            backgroundColor: const Color.fromRGBO(246, 247, 250, 1),
             body: Stack(
               children: [
                 ListView(
@@ -100,9 +100,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: const [
                         Text(
                           "REGISTER",
-                          selectionColor: Color(0xFF1D1049),
+                          selectionColor: AppColors.primary,
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 30),
+                              fontWeight: FontWeight.bold, fontSize: 30, color: Colors.white),
                         ),
                       ],
                     ),
@@ -115,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             height: 60,
                             child: TextField(
                               controller: _nameController,
-                              cursorColor: const Color(0xFF1D1049),
+                              cursorColor: AppColors.primary,
                               decoration: myDecoration(
                                   "Full Name", FontAwesomeIcons.user),
                             ),
@@ -125,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             height: 60,
                             child: TextField(
                               controller: _rollNoController,
-                              cursorColor: const Color(0xFF1D1049),
+                              cursorColor: AppColors.primary,
                               decoration: myDecoration(
                                   "Roll Number", FontAwesomeIcons.idCard),
                             ),
@@ -138,7 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   height: 60,
                                   child: TextField(
                                     controller: _branchController,
-                                    cursorColor: const Color(0xFF1D1049),
+                                    cursorColor: AppColors.primary,
                                     decoration: myDecoration(
                                         "Branch", FontAwesomeIcons.codeBranch),
                                   ),
@@ -150,7 +150,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   height: 60,
                                   child: TextField(
                                     controller: _yearController,
-                                    cursorColor: const Color(0xFF1D1049),
+                                    cursorColor: AppColors.primary,
                                     decoration: myDecoration(
                                         "Year", FontAwesomeIcons.calendar),
                                   ),
@@ -163,7 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             height: 60,
                             child: TextField(
                               controller: _programController,
-                              cursorColor: const Color(0xFF1D1049),
+                              cursorColor: AppColors.primary,
                               decoration: myDecoration("Program (e.g. BTECH)",
                                   FontAwesomeIcons.graduationCap),
                             ),
@@ -173,7 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             height: 60,
                             child: TextField(
                               controller: _emailController,
-                              cursorColor: const Color(0xFF1D1049),
+                              cursorColor: AppColors.primary,
                               keyboardType: TextInputType.emailAddress,
                               decoration: myDecoration("Official Email ID",
                                   FontAwesomeIcons.envelope),
@@ -182,7 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 10),
                           TextField(
                             controller: _passwordController,
-                            cursorColor: const Color(0xFF1D1049),
+                            cursorColor: AppColors.primary,
                             obscureText: true,
                             decoration:
                                 myDecoration("Password", FontAwesomeIcons.lock),
@@ -195,15 +195,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 25),
                       child: ElevatedButton(
                         onPressed: _handleRegister,
-                        style: ButtonStyle(
-                          backgroundColor:
-                              WidgetStateProperty.all(const Color(0xFF191C32)),
-                          fixedSize:
-                              const WidgetStatePropertyAll(Size.fromHeight(65)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          minimumSize: const Size.fromHeight(65),
                         ),
                         child: const Text(
                           "REGISTER",
-                          selectionColor: Colors.white,
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -219,12 +216,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => LoginScreen()));
+                                  builder: (context) => const LoginScreen()));
                         },
                         child: const Text(
                           "ALREADY HAVE AN ACCOUNT? LOGIN",
                           style: TextStyle(
-                            color: Color(0xFF000000),
+                            color: AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -259,29 +256,31 @@ InputDecoration myDecoration(String hintText, IconData youricon) {
     contentPadding: const EdgeInsets.symmetric(vertical: 20),
     prefixIcon: Container(
       margin: const EdgeInsets.all(8),
-      decoration:
-          const BoxDecoration(color: Color(0xFFDEF5E9), shape: BoxShape.circle),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.15),
+        shape: BoxShape.circle,
+      ),
       child: Icon(
         size: 20,
         youricon,
-        color: const Color(0xFF5FC88F),
+        color: AppColors.primary,
       ),
     ),
     filled: true,
-    fillColor: Colors.white,
+    fillColor: AppColors.cardColor,
     hintText: hintText,
-    hintStyle: const TextStyle(color: Colors.grey),
+    hintStyle: const TextStyle(color: AppColors.textSecondary),
     enabledBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: Colors.white),
+      borderSide: BorderSide(color: AppColors.border),
     ),
     focusedBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: Colors.grey, width: 1),
+      borderSide: BorderSide(color: AppColors.primary, width: 1.5),
     ),
     disabledBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: Colors.grey),
+      borderSide: BorderSide(color: AppColors.border),
     ),
   );
 }
