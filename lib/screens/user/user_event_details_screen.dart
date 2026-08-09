@@ -161,13 +161,19 @@ class UserEventDetailsScreen extends StatelessWidget {
                   child: Padding(
                     // Add padding to prevent it from touching the edge
                     padding: const EdgeInsets.only(top: 16, left: 24),
-                    child: Text(
-                      title.replaceAll(' ', '\n'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        letterSpacing: -1,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 37,
+                    child: SizedBox(
+                      width: width * 0.45,
+                      child: Text(
+                        title,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          letterSpacing: -1,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 28,
+                          height: 1.1,
+                        ),
                       ),
                     ),
                   ),
@@ -204,17 +210,21 @@ class UserEventDetailsScreen extends StatelessWidget {
                         child: ListView(
                           children: [
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  title,
-                                  style: const TextStyle(
-                                    letterSpacing: -1,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 23,
-                                    color: Colors.white,
+                                Expanded(
+                                  child: Text(
+                                    title,
+                                    style: const TextStyle(
+                                      letterSpacing: -1,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 23,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
+                                const SizedBox(width: 12),
                                 Text(
                                   timeStr,
                                   style: const TextStyle(

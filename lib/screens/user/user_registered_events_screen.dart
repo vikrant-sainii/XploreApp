@@ -137,6 +137,7 @@ class UserRegisteredEventsScreen extends StatelessWidget {
                                 shrinkWrap: true,
                                 itemCount: registered.length,
                                 scrollDirection: Axis.vertical,
+                                padding: const EdgeInsets.only(bottom: 120),
                                 itemBuilder: (BuildContext context, int index) {
                                   final event = registered[index];
                                   return Card(

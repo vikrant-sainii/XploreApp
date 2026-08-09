@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/user_service.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -180,6 +181,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       } catch (e) {
         emit(AuthError(e.toString()));
+      }
+    });
+
+    // ─── Check Session ────────────────────────────────────────────────────────
+    on<CheckSession>((event, emit) async {
+      final token = await _authService.getToken();
+      if (token == null) {
+        emit(Unauthenticated());
+        return;
+      }
+      try {
+        final result = await UserService().getMe();
+        if (result['success'] == true) {
+          final user = result['user'] as UserModel;
+          final role = result['role'] as String;
+          emit(Authenticated(user, role: role));
+        } else {
+          await _authService.logout();
+          emit(Unauthenticated());
+        }
+      } catch (_) {
+        emit(Unauthenticated());
       }
     });
   }

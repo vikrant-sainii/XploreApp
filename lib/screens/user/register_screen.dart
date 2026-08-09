@@ -90,10 +90,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 ListView(
                   children: [
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 5),
                     Image.asset(
-                      "assets/screen2.png",
-                      height: 150,
+                      "assets/screen1.png",
+                      height: 120,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -106,13 +106,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.only(left: 25, right: 25),
                       child: Column(
                         children: [
                           SizedBox(
-                            height: 60,
+                            height: 55,
                             child: TextField(
                               controller: _nameController,
                               cursorColor: AppColors.primary,
@@ -120,9 +120,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   "Full Name", FontAwesomeIcons.user),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           SizedBox(
-                            height: 60,
+                            height: 55,
                             child: TextField(
                               controller: _rollNoController,
                               cursorColor: AppColors.primary,
@@ -130,12 +130,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   "Roll Number", FontAwesomeIcons.idCard),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
                               Expanded(
                                 child: SizedBox(
-                                  height: 60,
+                                  height: 55,
                                   child: TextField(
                                     controller: _branchController,
                                     cursorColor: AppColors.primary,
@@ -145,22 +145,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              Expanded(
+                               Expanded(
                                 child: SizedBox(
-                                  height: 60,
-                                  child: TextField(
-                                    controller: _yearController,
-                                    cursorColor: AppColors.primary,
-                                    decoration: myDecoration(
-                                        "Year", FontAwesomeIcons.calendar),
+                                  height: 55,
+                                  child: DropdownButtonFormField<String>(
+                                    value: _yearController.text.isNotEmpty ? _yearController.text : null,
+                                    dropdownColor: AppColors.cardColor,
+                                    icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+                                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                                    decoration: myDecoration("Year", FontAwesomeIcons.calendar),
+                                    items: const [
+                                      DropdownMenuItem(value: "1", child: Text("1st")),
+                                      DropdownMenuItem(value: "2", child: Text("2nd")),
+                                      DropdownMenuItem(value: "3", child: Text("3rd")),
+                                      DropdownMenuItem(value: "4", child: Text("4th")),
+                                    ],
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _yearController.text = val ?? "";
+                                      });
+                                    },
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           SizedBox(
-                            height: 60,
+                            height: 55,
                             child: TextField(
                               controller: _programController,
                               cursorColor: AppColors.primary,
@@ -168,9 +180,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   FontAwesomeIcons.graduationCap),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           SizedBox(
-                            height: 60,
+                            height: 55,
                             child: TextField(
                               controller: _emailController,
                               cursorColor: AppColors.primary,
@@ -179,25 +191,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   FontAwesomeIcons.envelope),
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          TextField(
-                            controller: _passwordController,
-                            cursorColor: AppColors.primary,
-                            obscureText: true,
-                            decoration:
-                                myDecoration("Password", FontAwesomeIcons.lock),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            height: 55,
+                            child: TextField(
+                              controller: _passwordController,
+                              cursorColor: AppColors.primary,
+                              obscureText: true,
+                              decoration:
+                                  myDecoration("Password", FontAwesomeIcons.lock),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 35),
+                    const SizedBox(height: 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 25),
                       child: ElevatedButton(
                         onPressed: _handleRegister,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          minimumSize: const Size.fromHeight(65),
+                          minimumSize: const Size.fromHeight(60),
                         ),
                         child: const Text(
                           "REGISTER",
@@ -209,7 +224,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     Center(
                       child: GestureDetector(
                         onTap: () {

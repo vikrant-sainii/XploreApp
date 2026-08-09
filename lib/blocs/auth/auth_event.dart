@@ -143,3 +143,7 @@ class VerifyEmailRequested extends AuthEvent {
   @override
   List<Object?> get props => [token];
 }
+
+// ─── Check Session ───────────────────────────────────────────────────────────
+
+class CheckSession extends AuthEvent {}

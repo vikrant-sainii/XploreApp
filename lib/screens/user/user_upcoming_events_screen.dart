@@ -121,6 +121,7 @@ class UserUpcomingEventsScreen extends StatelessWidget {
                                 shrinkWrap: true,
                                 itemCount: upcoming.length,
                                 scrollDirection: Axis.vertical,
+                                padding: const EdgeInsets.only(bottom: 120),
                                 itemBuilder: (BuildContext context, int index) {
                                   final event = upcoming[index];
                                   return Card(

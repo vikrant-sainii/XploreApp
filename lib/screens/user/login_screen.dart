@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/screens/user/user_portal_screen.dart';
+import 'package:xplore_app/screens/user/register_screen.dart';
 import 'package:xplore_app/screens/head/head_portal_screen.dart';
 import 'package:xplore_app/screens/unused/forgot_password_roll_screen.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
@@ -73,10 +74,10 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 ListView(
                   children: [
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 5),
                     Image.asset(
-                      "assets/screen2.png",
-                      height: 330,
+                      "assets/screen1.png",
+                      height: 240,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -89,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.only(left: 25, right: 25),
                       child: Column(
@@ -120,9 +121,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 35),
+                    const SizedBox(height: 15),
                     Padding(
-                      padding: const EdgeInsets.all(25),
+                      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
                       child: ElevatedButton(
                         onPressed: _handleStudentLogin,
                         style: ElevatedButton.styleFrom(
@@ -139,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    Center(
+                     Center(
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -154,6 +155,34 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const RegisterScreen()),
+                          );
+                        },
+                        child: RichText(
+                          text: const TextSpan(
+                            text: "Don't have an account? ",
+                            style: TextStyle(color: Colors.white70),
+                            children: [
+                              TextSpan(
+                                text: "Register Now",
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

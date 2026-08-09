@@ -37,7 +37,9 @@ class UserHomeScreen extends StatelessWidget {
                     bottom: height * 0.015,
                     left: width * 0.1,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        changeindex(2);
+                      },
                       style: TextButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -201,6 +203,7 @@ class UserHomeScreen extends StatelessWidget {
                         },
                       ),
                     ),
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
