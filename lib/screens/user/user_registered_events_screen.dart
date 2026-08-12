@@ -14,35 +14,34 @@ class UserRegisteredEventsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         scrolledUnderElevation: 0,
-        leadingWidth: 60,
         backgroundColor: AppColors.scaffoldBackground,
-        leading: Row(
-          children: [
-            const SizedBox(width: 8), // This adds your space on the left
-            IconButton(
-              iconSize: 30,
-              icon: const Icon(Icons.arrow_back),
-              color: Colors.white,
-              // This is the correct way to style an IconButton
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.cardColor,
-                shape: const CircleBorder(), // Makes the background a circle
-              ),
-              onPressed: () {
-                changeindex(0);
-              },
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: IconButton(
+            iconSize: 24,
+            icon: const Icon(Icons.arrow_back),
+            color: Colors.white,
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.cardColor,
+              shape: const CircleBorder(),
             ),
-          ],
+            onPressed: () {
+              changeindex(0);
+            },
+          ),
         ),
         actions: [
           IconButton(
-            iconSize: 30,
+            iconSize: 24,
             icon: const Icon(Icons.more_vert),
             onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.cardColor),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.cardColor,
+              shape: const CircleBorder(),
+            ),
             color: Colors.white,
           ),
-          const Padding(padding: EdgeInsets.all(8))
+          const SizedBox(width: 12)
         ],
       ),
       body: LayoutBuilder(
@@ -55,10 +54,9 @@ class UserRegisteredEventsScreen extends StatelessWidget {
               children: [
                 Align(
                   alignment: Alignment.topLeft,
-                  child: Padding(
-                    // Add padding to prevent it from touching the edge
-                    padding: const EdgeInsets.only(top: 16, left: 24),
-                    child: const Text(
+                  child: const Padding(
+                    padding: EdgeInsets.only(top: 16, left: 24),
+                    child: Text(
                       "Registered\nEvents",
                       style: TextStyle(
                         color: Colors.white,
@@ -69,7 +67,6 @@ class UserRegisteredEventsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // 2. Align the Image to the top-right
                 Align(
                   alignment: Alignment.topRight,
                   child: Image.asset(
@@ -85,95 +82,85 @@ class UserRegisteredEventsScreen extends StatelessWidget {
                       right: width * 0.02),
                   width: width,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(40),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
                     color: AppColors.scaffoldBackground,
                   ),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: height * 0.02,
-                      ),
-                      Container(
-                        height: height * 0.7,
-                        margin: EdgeInsets.symmetric(
-                          horizontal: width * 0.05,
-                        ),
-                        child: BlocBuilder<EventBloc, EventState>(
-                          builder: (context, state) {
-                            if (state is EventLoading) {
-                              return const Center(child: CircularProgressIndicator());
-                            } else if (state is EventError) {
-                              return Center(child: Text(state.message));
-                            } else if (state is EventsLoaded) {
-                              final registered = state.registeredEvents;
-                              if (registered.isEmpty) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        "No registered events yet.",
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.textSecondary),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          changeindex(2); // Go to upcoming tab
-                                        },
-                                        child: const Text(
-                                          "Tap to Register ?",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.primary),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: height * 0.02,
+                      left: width * 0.03,
+                      right: width * 0.03,
+                    ),
+                    child: BlocBuilder<EventBloc, EventState>(
+                      builder: (context, state) {
+                        if (state is EventLoading) {
+                          return const Center(child: CircularProgressIndicator());
+                        } else if (state is EventError) {
+                          return Center(child: Text(state.message, style: const TextStyle(color: Colors.white)));
+                        } else if (state is EventsLoaded) {
+                          final registered = state.registeredEvents;
+                          if (registered.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    "No registered events yet.",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.textSecondary),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      changeindex(2); // Go to upcoming tab
+                                    },
+                                    child: const Text(
+                                      "Tap to Register ?",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                          return ListView.builder(
+                            itemCount: registered.length,
+                            padding: const EdgeInsets.only(bottom: 120),
+                            itemBuilder: (BuildContext context, int index) {
+                              final event = registered[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: EventTile(
+                                  imagelocation: event.imageLocation ?? 'assets/octave.png',
+                                  title: event.title,
+                                  subtitle: event.subtitle ?? '',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => UserEventDetailsScreen(
+                                          event: event,
+                                          changeindex: changeindex,
+                                          preview: EventDraft.no,
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                );
-                              }
-                              return ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: registered.length,
-                                scrollDirection: Axis.vertical,
-                                padding: const EdgeInsets.only(bottom: 120),
-                                itemBuilder: (BuildContext context, int index) {
-                                  final event = registered[index];
-                                  return Card(
-                                    color: AppColors.cardColor,
-                                    elevation: 4,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30.0),
-                                      side: const BorderSide(color: AppColors.border, width: 1),
-                                    ),
-                                    child: EventTile(
-                                      imagelocation: event.imageLocation ?? 'assets/octave.png',
-                                      title: event.title,
-                                      subtitle: event.subtitle ?? '',
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => UserEventDetailsScreen(
-                                              event: event,
-                                              changeindex: changeindex,
-                                              preview: EventDraft.no,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      type: TrailingType.typeRegistered,
-                                    ),
-                                  );
-                                },
+                                    );
+                                  },
+                                  type: TrailingType.typeRegistered,
+                                ),
                               );
-                            }
-                            return const SizedBox.shrink();
-                          },
-                        ),
-                      ),
-                    ],
+                            },
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
                   ),
                 ),
               ],

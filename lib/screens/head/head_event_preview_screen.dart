@@ -84,42 +84,42 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         scrolledUnderElevation: 0,
-        leadingWidth: 60,
         backgroundColor: Colors.transparent,
-        leading: Row(
-          children: [
-            const SizedBox(width: 8),
-            IconButton(
-              iconSize: 30,
-              icon: const Icon(Icons.arrow_back),
-              color: Colors.white,
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.cardColor,
-                shape: const CircleBorder(),
-              ),
-              onPressed: () {
-                widget.changeindex(0);
-              },
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: IconButton(
+            iconSize: 24,
+            icon: const Icon(Icons.arrow_back),
+            color: Colors.white,
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.cardColor,
+              shape: const CircleBorder(),
             ),
-          ],
+            onPressed: () {
+              widget.changeindex(0);
+            },
+          ),
         ),
         title: const Text(
           "EVENT PREVIEW",
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
-            fontSize: 26,
+            fontSize: 24,
           ),
         ),
         actions: [
           IconButton(
-            iconSize: 30,
+            iconSize: 24,
             icon: const Icon(Icons.more_vert),
             onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.cardColor),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.cardColor,
+              shape: const CircleBorder(),
+            ),
             color: Colors.white,
           ),
-          const Padding(padding: EdgeInsets.all(8))
+          const SizedBox(width: 12)
         ],
       ),
       body: LayoutBuilder(

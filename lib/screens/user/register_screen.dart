@@ -17,33 +17,107 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // Controllers for text fields
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _rollNoController = TextEditingController();
-  final TextEditingController _branchController = TextEditingController();
-  final TextEditingController _yearController = TextEditingController();
-  final TextEditingController _programController = TextEditingController();
+  final TextEditingController _customBranchController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  String? _selectedProgram;
+  String? _selectedBranch;
+  String? _selectedYear;
+
+  static const List<Map<String, String>> _btechBranches = [
+    {'code': 'CSE', 'name': 'Computer Science & Engineering'},
+    {'code': 'ECE', 'name': 'Electronics & Comm. Engineering'},
+    {'code': 'EE', 'name': 'Electrical Engineering'},
+    {'code': 'ME', 'name': 'Mechanical Engineering'},
+    {'code': 'CE', 'name': 'Civil Engineering'},
+    {'code': 'CHE', 'name': 'Chemical Engineering'},
+    {'code': 'IPE', 'name': 'Industrial & Production Engg'},
+    {'code': 'IT', 'name': 'Information Technology'},
+    {'code': 'ICE', 'name': 'Instrumentation & Control Engg'},
+    {'code': 'MnC', 'name': 'Mathematics & Computing'},
+    {'code': 'DSE', 'name': 'Data Science & Engineering'},
+    {'code': 'BT', 'name': 'Biotechnology'},
+    {'code': 'TT', 'name': 'Textile Technology'},
+  ];
+
+  static const List<Map<String, String>> _mtechBranches = [
+    {'code': 'CSE_MTECH', 'name': 'Computer Science and Engineering'},
+    {'code': 'VLSI', 'name': 'VLSI Design'},
+    {'code': 'SPML', 'name': 'Signal Processing & Machine Learning'},
+    {'code': 'AI', 'name': 'Artificial Intelligence'},
+    {'code': 'DESIGN', 'name': 'Design Engineering'},
+    {'code': 'IS', 'name': 'Intelligent System'},
+    {'code': 'MI', 'name': 'Machine Intelligence'},
+    {'code': 'SYS', 'name': 'Systems Engineering'},
+    {'code': 'DS', 'name': 'Data Science'},
+    {'code': 'BT_MTECH', 'name': 'Biotechnology'},
+    {'code': 'SCE', 'name': 'Structural & Construction Engg'},
+    {'code': 'RE', 'name': 'Renewable Energy'},
+    {'code': 'DA', 'name': 'Data Analytics'},
+    {'code': 'EVE', 'name': 'Electrical Vehicle Engineering'},
+    {'code': 'TEM', 'name': 'Textile Engineering & Management'},
+    {'code': 'CSI', 'name': 'Control Systems & Instrumentation'},
+    {'code': 'INFOSEC', 'name': 'Information Security'},
+    {'code': 'THERMAL', 'name': 'Thermal Engineering'},
+    {'code': 'GG', 'name': 'Geotechnical & Geo-environmental Engg'},
+    {'code': 'CHE_MTECH', 'name': 'Chemical Engineering'},
+    {'code': 'IEDA', 'name': 'Industrial Engg & Data Analytics'},
+    {'code': 'MANUF', 'name': 'Manufacturing Technology'},
+    {'code': 'ICT', 'name': 'Integrated Circuit Technology'},
+    {'code': 'PSE', 'name': 'Power System Engineering'},
+  ];
 
   @override
   void dispose() {
     _nameController.dispose();
     _rollNoController.dispose();
-    _branchController.dispose();
-    _yearController.dispose();
-    _programController.dispose();
+    _customBranchController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   void _handleRegister() {
+    final name = _nameController.text.trim();
+    final rollNo = _rollNoController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final program = _selectedProgram;
+
+    if (name.isEmpty || rollNo.isEmpty || email.isEmpty || password.isEmpty) {
+      _showSnackBar("Please fill in all basic details.");
+      return;
+    }
+
+    if (program == null || program.isEmpty) {
+      _showSnackBar("Please select your program.");
+      return;
+    }
+
+    final branch = program == 'OTHER'
+        ? _customBranchController.text.trim()
+        : (_selectedBranch ?? '');
+
+    if (branch.isEmpty) {
+      _showSnackBar("Please select or enter your branch.");
+      return;
+    }
+
+    final year = _selectedYear ?? '';
+    if (year.isEmpty) {
+      _showSnackBar("Please select your passout year.");
+      return;
+    }
+
     context.read<AuthBloc>().add(RegisterRequested(
-          name: _nameController.text,
-          rollNo: _rollNoController.text,
-          branch: _branchController.text,
-          year: _yearController.text,
-          program: _programController.text,
-          email: _emailController.text,
-          password: _passwordController.text,
+          name: name,
+          rollNo: rollNo,
+          branch: branch,
+          year: year,
+          program: program,
+          email: email,
+          password: password,
         ));
   }
 
@@ -52,6 +126,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -72,7 +147,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               MaterialPageRoute(builder: (_) => const LoginScreen()),
             );
           } else if (state is Authenticated) {
-            // Dev-mode: backend auto-logged us in
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => const UserPortalScreen()),
@@ -111,6 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.only(left: 25, right: 25),
                       child: Column(
                         children: [
+                          // 1. Full Name
                           SizedBox(
                             height: 55,
                             child: TextField(
@@ -121,6 +196,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+
+                          // 2. Roll Number
                           SizedBox(
                             height: 55,
                             child: TextField(
@@ -131,56 +208,171 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: SizedBox(
-                                  height: 55,
-                                  child: TextField(
-                                    controller: _branchController,
-                                    cursorColor: AppColors.primary,
-                                    decoration: myDecoration(
-                                        "Branch", FontAwesomeIcons.codeBranch),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                               Expanded(
-                                child: SizedBox(
-                                  height: 55,
-                                  child: DropdownButtonFormField<String>(
-                                    value: _yearController.text.isNotEmpty ? _yearController.text : null,
-                                    dropdownColor: AppColors.cardColor,
-                                    icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
-                                    style: const TextStyle(color: Colors.white, fontSize: 15),
-                                    decoration: myDecoration("Year", FontAwesomeIcons.calendar),
-                                    items: const [
-                                      DropdownMenuItem(value: "1", child: Text("1st")),
-                                      DropdownMenuItem(value: "2", child: Text("2nd")),
-                                      DropdownMenuItem(value: "3", child: Text("3rd")),
-                                      DropdownMenuItem(value: "4", child: Text("4th")),
-                                    ],
-                                    onChanged: (val) {
-                                      setState(() {
-                                        _yearController.text = val ?? "";
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
+
+                          // 3. Select Program (BTech, MTech, Other)
                           SizedBox(
                             height: 55,
-                            child: TextField(
-                              controller: _programController,
-                              cursorColor: AppColors.primary,
-                              decoration: myDecoration("Program (e.g. BTECH)",
-                                  FontAwesomeIcons.graduationCap),
+                            child: DropdownButtonFormField<String>(
+                              value: _selectedProgram,
+                              dropdownColor: const Color(0xFF1E202B),
+                              borderRadius: BorderRadius.circular(16),
+                              menuMaxHeight: 280,
+                              elevation: 12,
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary, size: 24),
+                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                              decoration: myDecoration("Select Program", FontAwesomeIcons.graduationCap),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: "BTECH",
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text("B.Tech", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: "MTECH",
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text("M.Tech", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: "OTHER",
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text("Other", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedProgram = val;
+                                  _selectedBranch = null;
+                                });
+                              },
                             ),
                           ),
                           const SizedBox(height: 8),
+
+                          // 4. Select Branch
+                          SizedBox(
+                            height: 55,
+                            child: _selectedProgram == 'OTHER'
+                                ? TextField(
+                                    key: const ValueKey("custom_branch"),
+                                    controller: _customBranchController,
+                                    cursorColor: AppColors.primary,
+                                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                                    decoration: myDecoration(
+                                        "Enter Branch Name", FontAwesomeIcons.codeBranch),
+                                  )
+                                : DropdownButtonFormField<String>(
+                                    key: ValueKey("branch_select_${_selectedProgram ?? 'none'}"),
+                                    value: _selectedBranch,
+                                    dropdownColor: const Color(0xFF1E202B),
+                                    borderRadius: BorderRadius.circular(16),
+                                    menuMaxHeight: 280,
+                                    elevation: 12,
+                                    isExpanded: true,
+                                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary, size: 24),
+                                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                                    decoration: myDecoration("Select Branch", FontAwesomeIcons.codeBranch),
+                                    items: _selectedProgram == null
+                                        ? null
+                                        : (_selectedProgram == 'MTECH'
+                                                ? _mtechBranches
+                                                : _btechBranches)
+                                            .map((b) => DropdownMenuItem(
+                                                  value: b['code'],
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                                    child: Text(
+                                                      b['name']!,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                                                    ),
+                                                  ),
+                                                ))
+                                            .toList(),
+                                    onChanged: _selectedProgram == null
+                                        ? null
+                                        : (val) {
+                                            setState(() {
+                                              _selectedBranch = val;
+                                            });
+                                          },
+                                  ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // 5. Passout Year Selection
+                          SizedBox(
+                            height: 55,
+                            child: DropdownButtonFormField<String>(
+                              value: _selectedYear,
+                              dropdownColor: const Color(0xFF1E202B),
+                              borderRadius: BorderRadius.circular(16),
+                              menuMaxHeight: 280,
+                              elevation: 12,
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary, size: 24),
+                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                              decoration: myDecoration("Select Passout Year", FontAwesomeIcons.calendar),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: "2025",
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text("2025", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: "2026",
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text("2026", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: "2027",
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text("2027", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: "2028",
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text("2028", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: "2029",
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text("2029", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: "2030",
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text("2030", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedYear = val;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // 5. Email ID
                           SizedBox(
                             height: 55,
                             child: TextField(
@@ -192,6 +384,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+
+                          // 6. Password
                           SizedBox(
                             height: 55,
                             child: TextField(
@@ -200,6 +394,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               obscureText: true,
                               decoration:
                                   myDecoration("Password", FontAwesomeIcons.lock),
+                              onSubmitted: (_) => _handleRegister(),
                             ),
                           ),
                         ],
@@ -208,20 +403,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 25),
-                      child: ElevatedButton(
-                        onPressed: _handleRegister,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          minimumSize: const Size.fromHeight(60),
-                        ),
-                        child: const Text(
-                          "REGISTER",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
+                      child: BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, state) {
+                          final isLoading = state is AuthLoading;
+                          return ElevatedButton(
+                            onPressed: isLoading ? null : _handleRegister,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+                              minimumSize: const Size.fromHeight(60),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                : const Text(
+                                    "REGISTER",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -245,20 +455,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 30),
                   ],
                 ),
-                // Loading indicator overlay
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    if (state is AuthLoading) {
-                      return Container(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
               ],
             ),
           ),
@@ -268,7 +464,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 InputDecoration myDecoration(String hintText, IconData youricon) {
   return InputDecoration(
-    contentPadding: const EdgeInsets.symmetric(vertical: 20),
+    contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
     prefixIcon: Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -276,7 +472,7 @@ InputDecoration myDecoration(String hintText, IconData youricon) {
         shape: BoxShape.circle,
       ),
       child: Icon(
-        size: 20,
+        size: 18,
         youricon,
         color: AppColors.primary,
       ),
@@ -284,7 +480,7 @@ InputDecoration myDecoration(String hintText, IconData youricon) {
     filled: true,
     fillColor: AppColors.cardColor,
     hintText: hintText,
-    hintStyle: const TextStyle(color: AppColors.textSecondary),
+    hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
     enabledBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(40)),
       borderSide: BorderSide(color: AppColors.border),

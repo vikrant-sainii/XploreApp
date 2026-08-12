@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:xplore_app/config/theme.dart';
 import 'package:xplore_app/screens/head/head_dashboard_screen.dart';
 import 'package:xplore_app/screens/head/head_add_event_screen.dart';
@@ -42,7 +41,10 @@ class _HeadPortalScreenState extends State<HeadPortalScreen> {
       backgroundColor: AppColors.scaffoldBackground,
       body: Stack(
         children: [
-          screen[currentindex],
+          IndexedStack(
+            index: currentindex,
+            children: screen,
+          ),
           CustomBottomNavBar(
             currentindex: currentindex,
             onTap: _modifyindex,
@@ -85,33 +87,31 @@ class CustomBottomNavBar extends StatelessWidget {
           children: [
             IconButton(
               onPressed: () => onTap(0),
-              icon: const Icon(Icons.home),
-              iconSize: 30,
+              icon: const Icon(Icons.dashboard_rounded),
+              iconSize: 28,
               color: (currentindex == 0) ? AppColors.primary : AppColors.textSecondary,
+              tooltip: 'Dashboard',
             ),
             IconButton(
               onPressed: () => onTap(1),
-              icon: SvgPicture.asset(
-                'assets/icons/homenav.svg',
-                width: 26,
-                height: 26,
-                colorFilter: ColorFilter.mode(
-                  (currentindex == 1) ? AppColors.primary : AppColors.textSecondary,
-                  BlendMode.srcIn,
-                ),
-              ),
+              icon: const Icon(Icons.add_circle_outline_rounded),
+              iconSize: 28,
+              color: (currentindex == 1) ? AppColors.primary : AppColors.textSecondary,
+              tooltip: 'Add Event',
             ),
             IconButton(
               onPressed: () => onTap(2),
-              icon: const Icon(Icons.group),
-              iconSize: 30,
+              icon: const Icon(Icons.preview_rounded),
+              iconSize: 28,
               color: (currentindex == 2) ? AppColors.primary : AppColors.textSecondary,
+              tooltip: 'Event Preview',
             ),
             IconButton(
               onPressed: () => onTap(3),
-              icon: const Icon(Icons.person),
-              iconSize: 30,
+              icon: const Icon(Icons.event_note_rounded),
+              iconSize: 28,
               color: (currentindex == 3) ? AppColors.primary : AppColors.textSecondary,
+              tooltip: 'Event Management',
             ),
           ],
         ),

@@ -47,6 +47,32 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
     super.dispose();
   }
 
+  Future<void> _selectDate(TextEditingController controller) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2025),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      final formattedMonth = picked.month.toString().padLeft(2, '0');
+      final formattedDay = picked.day.toString().padLeft(2, '0');
+      controller.text = "${picked.year}-$formattedMonth-$formattedDay";
+    }
+  }
+
+  Future<void> _selectTime(TextEditingController controller) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 18, minute: 0),
+    );
+    if (picked != null) {
+      final hourStr = picked.hour.toString().padLeft(2, '0');
+      final minuteStr = picked.minute.toString().padLeft(2, '0');
+      controller.text = "$hourStr:$minuteStr";
+    }
+  }
+
   Future<void> _submitEvent(bool isDraft) async {
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -169,34 +195,34 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         scrolledUnderElevation: 0,
-        leadingWidth: 60,
         backgroundColor: Colors.transparent,
-        leading: Row(
-          children: [
-            const SizedBox(width: 8),
-            IconButton(
-              iconSize: 30,
-              icon: const Icon(Icons.arrow_back),
-              color: Colors.white,
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.cardColor,
-                shape: const CircleBorder(),
-              ),
-              onPressed: () {
-                widget.changeindex(0);
-              },
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: IconButton(
+            iconSize: 24,
+            icon: const Icon(Icons.arrow_back),
+            color: Colors.white,
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.cardColor,
+              shape: const CircleBorder(),
             ),
-          ],
+            onPressed: () {
+              widget.changeindex(0);
+            },
+          ),
         ),
         actions: [
           IconButton(
-            iconSize: 30,
+            iconSize: 24,
             icon: const Icon(Icons.more_vert),
             onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.cardColor),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.cardColor,
+              shape: const CircleBorder(),
+            ),
             color: Colors.white,
           ),
-          const Padding(padding: EdgeInsets.all(8))
+          const SizedBox(width: 12)
         ],
       ),
       body: LayoutBuilder(
@@ -246,123 +272,113 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
                         color: AppColors.cardColor,
                         border: Border.all(color: AppColors.border, width: 1),
                       ),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: height * 0.03,
-                          ),
-                          Container(
-                            height: height * 0.7,
-                            margin: EdgeInsets.symmetric(
-                              horizontal: width * 0.06,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        child: ListView(
+                          children: [
+                            const Text(
+                              "EVENT INFO",
+                              style: TextStyle(
+                                letterSpacing: -1,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 23,
+                                color: Colors.white,
+                              ),
                             ),
-                            child: ListView(
-                              children: [
-                                const Text(
-                                  "EVENT INFO",
-                                  style: TextStyle(
-                                    letterSpacing: -1,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 23,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(height: height * 0.02),
-                                _buildContainer1(
-                                  "Event Title",
-                                  "Event Description",
-                                  "Event Name",
-                                  "Event Details",
-                                  _titleController,
-                                  _descriptionController,
-                                ),
-                                SizedBox(height: height * 0.02),
-                                const Text(
-                                  "SCHEDULE SECTION",
-                                  style: TextStyle(
-                                    letterSpacing: -1,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 23,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(height: height * 0.02),
-                                _buildContainer2(
-                                  "Start Date (YYYY-MM-DD)",
-                                  "Start Time (HH:MM)",
-                                  "End Date (YYYY-MM-DD)",
-                                  "End Time (HH:MM)",
-                                  _startDateController,
-                                  _startTimeController,
-                                  _endDateController,
-                                  _endTimeController,
-                                ),
-                                SizedBox(height: height * 0.02),
-                                const Text(
-                                  "LOCATION SECTION",
-                                  style: TextStyle(
-                                    letterSpacing: -1,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 23,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(height: height * 0.02),
-                                _buildContainer1(
-                                  "PHYSICAL EVENT",
-                                  "VIRTUAL EVENT",
-                                  "Venue Name",
-                                  "Meeting Link",
-                                  _venueController,
-                                  _linkController,
-                                ),
-                                SizedBox(height: height * 0.02),
-                                const Text(
-                                  "MEDIA SECTION",
-                                  style: TextStyle(
-                                    letterSpacing: -1,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 23,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(height: height * 0.02),
-                                _buildContainer1(
-                                  "Upload Event Poster URL",
-                                  "Upload Video URL (Optional)",
-                                  "Image URL",
-                                  "Video URL",
-                                  _posterController,
-                                  _videoController,
-                                ),
-                                SizedBox(height: height * 0.02),
-                                const Text(
-                                  "ADDITIONAL OPTIONS",
-                                  style: TextStyle(
-                                    letterSpacing: -1,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 23,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(height: height * 0.02),
-                                _buildContainer1(
-                                  "MAX PARTICIPANTS",
-                                  "CONTACT INFO",
-                                  "Max Number",
-                                  "Contact Number",
-                                  _maxParticipantsController,
-                                  _contactController,
-                                ),
-                                SizedBox(height: height * 0.05),
-                                _buildSubmitButton("SAVE AS DRAFT", () => _submitEvent(true)),
-                                SizedBox(height: height * 0.02),
-                                _buildSubmitButton("PUBLISH EVENT", () => _submitEvent(false)),
-                                const SizedBox(height: 100),
-                              ],
+                            const SizedBox(height: 16),
+                            _buildContainer1(
+                              "Event Title",
+                              "Event Description",
+                              "Event Name",
+                              "Event Details",
+                              _titleController,
+                              _descriptionController,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 20),
+                            const Text(
+                              "SCHEDULE SECTION",
+                              style: TextStyle(
+                                letterSpacing: -1,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 23,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildContainer2(
+                              "Start Date (YYYY-MM-DD)",
+                              "Start Time (HH:MM)",
+                              "End Date (YYYY-MM-DD)",
+                              "End Time (HH:MM)",
+                              _startDateController,
+                              _startTimeController,
+                              _endDateController,
+                              _endTimeController,
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              "LOCATION SECTION",
+                              style: TextStyle(
+                                letterSpacing: -1,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 23,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildContainer1(
+                              "PHYSICAL EVENT",
+                              "VIRTUAL EVENT",
+                              "Venue Name",
+                              "Meeting Link",
+                              _venueController,
+                              _linkController,
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              "MEDIA SECTION",
+                              style: TextStyle(
+                                letterSpacing: -1,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 23,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildContainer1(
+                              "Upload Event Poster URL",
+                              "Upload Video URL (Optional)",
+                              "Image URL",
+                              "Video URL",
+                              _posterController,
+                              _videoController,
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              "ADDITIONAL OPTIONS",
+                              style: TextStyle(
+                                letterSpacing: -1,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 23,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildContainer1(
+                              "MAX PARTICIPANTS",
+                              "CONTACT INFO",
+                              "Max Number",
+                              "Contact Number",
+                              _maxParticipantsController,
+                              _contactController,
+                            ),
+                            const SizedBox(height: 32),
+                            _buildSubmitButton("SAVE AS DRAFT", () => _submitEvent(true)),
+                            const SizedBox(height: 16),
+                            _buildSubmitButton("PUBLISH EVENT", () => _submitEvent(false)),
+                            const SizedBox(height: 100),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -387,7 +403,7 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
-        minimumSize: const Size.fromHeight(65),
+        minimumSize: const Size.fromHeight(60),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -403,15 +419,16 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
     );
   }
 
-  InputDecoration _myDecoration(String hintText) {
+  InputDecoration _myDecoration(String hintText, {Widget? suffixIcon}) {
     return InputDecoration(
       filled: true,
       fillColor: AppColors.scaffoldBackground,
       hintText: hintText,
+      suffixIcon: suffixIcon,
       hintStyle: const TextStyle(color: Colors.white38),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: const BorderRadius.all(Radius.circular(20)),
+      enabledBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(20)),
         borderSide: BorderSide(color: AppColors.border),
       ),
       focusedBorder: const OutlineInputBorder(
@@ -437,7 +454,7 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
             title1,
             style: const TextStyle(
               fontWeight: FontWeight.w500,
-              fontSize: 20,
+              fontSize: 18,
               color: Colors.white,
             ),
           ),
@@ -452,7 +469,7 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
             title2,
             style: const TextStyle(
               fontWeight: FontWeight.w500,
-              fontSize: 20,
+              fontSize: 18,
               color: Colors.white,
             ),
           ),
@@ -496,35 +513,45 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
                       title1,
                       style: const TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: controller1,
+                      readOnly: true,
+                      onTap: () => _selectDate(controller1),
                       style: const TextStyle(color: Colors.white),
-                      decoration: _myDecoration("e.g. 2026-08-15"),
+                      decoration: _myDecoration(
+                        "Select Date",
+                        suffixIcon: const Icon(Icons.calendar_today, color: AppColors.primary, size: 18),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       title2,
                       style: const TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: controller2,
+                      readOnly: true,
+                      onTap: () => _selectTime(controller2),
                       style: const TextStyle(color: Colors.white),
-                      decoration: _myDecoration("e.g. 18:00"),
+                      decoration: _myDecoration(
+                        "Select Time",
+                        suffixIcon: const Icon(Icons.access_time, color: AppColors.primary, size: 18),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,30 +560,40 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
                       title3,
                       style: const TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: controller3,
+                      readOnly: true,
+                      onTap: () => _selectDate(controller3),
                       style: const TextStyle(color: Colors.white),
-                      decoration: _myDecoration("e.g. 2026-08-15"),
+                      decoration: _myDecoration(
+                        "Select Date",
+                        suffixIcon: const Icon(Icons.calendar_today, color: AppColors.primary, size: 18),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       title4,
                       style: const TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: controller4,
+                      readOnly: true,
+                      onTap: () => _selectTime(controller4),
                       style: const TextStyle(color: Colors.white),
-                      decoration: _myDecoration("e.g. 20:00"),
+                      decoration: _myDecoration(
+                        "Select Time",
+                        suffixIcon: const Icon(Icons.access_time, color: AppColors.primary, size: 18),
+                      ),
                     ),
                   ],
                 ),

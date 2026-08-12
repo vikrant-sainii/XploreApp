@@ -28,8 +28,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleStudentLogin() {
-    final email = _emailController.text;
-    final password = _passwordController.text;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      _showSnackBar("Please enter both email and password.");
+      return;
+    }
     context.read<AuthBloc>().add(LoginRequested(email, password));
   }
 
@@ -38,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -59,7 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
               );
             }
           } else if (state is Needs2FA) {
-            // TODO: Navigate to your OTP screen, passing state.email
             _showSnackBar('OTP sent to ${state.email}');
           } else if (state is AuthError) {
             _showSnackBar(state.message);
@@ -116,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             enabled: true,
                             decoration:
                                 myDecoration("Password", FontAwesomeIcons.lock),
-                            // onSubmitted: (_) => _handleStudentLogin(),
+                            onSubmitted: (_) => _handleStudentLogin(),
                           ),
                         ],
                       ),
@@ -124,20 +128,35 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                      child: ElevatedButton(
-                        onPressed: _handleStudentLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          minimumSize: const Size.fromHeight(65),
-                        ),
-                        child: const Text(
-                          "LOGIN",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
+                      child: BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, state) {
+                          final isLoading = state is AuthLoading;
+                          return ElevatedButton(
+                            onPressed: isLoading ? null : _handleStudentLogin,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+                              minimumSize: const Size.fromHeight(65),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                : const Text(
+                                    "LOGIN",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                          );
+                        },
                       ),
                     ),
                      Center(

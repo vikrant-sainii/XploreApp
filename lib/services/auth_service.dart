@@ -120,7 +120,7 @@ class AuthService {
         url,
         headers: _jsonHeaders,
         body: jsonEncode({'email': email, 'password': password}),
-      );
+      ).timeout(const Duration(seconds: 45));
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final result = _parseAuthResponse(response, data);
       if (result['success'] == true && result['needs2FA'] == false) {
@@ -129,7 +129,13 @@ class AuthService {
       }
       return result;
     } catch (e) {
-      return {'success': false, 'message': e.toString()};
+      String msg = 'Login failed. Please check your internet connection.';
+      if (e.toString().contains('TimeoutException')) {
+        msg = 'Backend server takes too long to respond (warmup required). Please try again in a few seconds.';
+      } else if (e is FormatException) {
+        msg = 'Invalid server response.';
+      }
+      return {'success': false, 'message': msg};
     }
   }
 
@@ -145,7 +151,7 @@ class AuthService {
         url,
         headers: _jsonHeaders,
         body: jsonEncode({'email': email, 'password': password}),
-      );
+      ).timeout(const Duration(seconds: 45));
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final result = _parseAuthResponse(response, data);
       if (result['success'] == true && result['needs2FA'] == false) {
@@ -154,7 +160,11 @@ class AuthService {
       }
       return result;
     } catch (e) {
-      return {'success': false, 'message': e.toString()};
+      String msg = 'Admin login failed. Please check your internet connection.';
+      if (e.toString().contains('TimeoutException')) {
+        msg = 'Backend server takes too long to respond. Please try again.';
+      }
+      return {'success': false, 'message': msg};
     }
   }
 

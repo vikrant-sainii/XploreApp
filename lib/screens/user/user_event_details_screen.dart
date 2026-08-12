@@ -105,47 +105,44 @@ class UserEventDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         scrolledUnderElevation: 0,
-        leadingWidth: 60,
         backgroundColor: AppColors.scaffoldBackground,
-        leading: Row(
-          children: [
-            const SizedBox(width: 8), // This adds your space on the left
-            IconButton(
-              iconSize: 30,
-              icon: const Icon(Icons.arrow_back),
-              color: Colors.white,
-              // This is the correct way to style an IconButton
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.cardColor,
-                shape: const CircleBorder(), // Makes the background a circle
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: IconButton(
+            iconSize: 24,
+            icon: const Icon(Icons.arrow_back),
+            color: Colors.white,
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.cardColor,
+              shape: const CircleBorder(),
             ),
-          ],
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
         title: preview == EventDraft.yes
             ? const Text(
                 "EVENT PREVIEW",
                 style: TextStyle(
                   color: Colors.white,
-                  // letterSpacing: -1,
                   fontWeight: FontWeight.w600,
-                  fontSize: 30,
+                  fontSize: 24,
                 ),
               )
             : null,
         actions: [
           IconButton(
-            iconSize: 30,
+            iconSize: 24,
             icon: const Icon(Icons.more_vert),
             onPressed: () {},
-            style:
-                ElevatedButton.styleFrom(backgroundColor: AppColors.cardColor),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.cardColor,
+              shape: const CircleBorder(),
+            ),
             color: Colors.white,
           ),
-          const Padding(padding: EdgeInsets.all(8))
+          const SizedBox(width: 12)
         ],
       ),
       body: LayoutBuilder(
@@ -159,7 +156,6 @@ class UserEventDetailsScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.topLeft,
                   child: Padding(
-                    // Add padding to prevent it from touching the edge
                     padding: const EdgeInsets.only(top: 16, left: 24),
                     child: SizedBox(
                       width: width * 0.45,
@@ -178,7 +174,6 @@ class UserEventDetailsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // 2. Align the Image to the top-right
                 Align(
                   alignment: Alignment.topRight,
                   child: Image.asset(
@@ -194,162 +189,166 @@ class UserEventDetailsScreen extends StatelessWidget {
                       right: width * 0.02),
                   width: width,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(40),
-                    color: AppColors.scaffoldBackground,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
+                    color: AppColors.cardColor,
+                    border: Border.all(color: AppColors.border, width: 1),
                   ),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: height * 0.03,
-                      ),
-                      Container(
-                        height: height * 0.7,
-                        margin: EdgeInsets.symmetric(
-                          horizontal: width * 0.06,
-                        ),
-                        child: ListView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    child: ListView(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    title,
-                                    style: const TextStyle(
-                                      letterSpacing: -1,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 23,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                            Expanded(
+                              child: Text(
+                                title,
+                                style: const TextStyle(
+                                  letterSpacing: -1,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 23,
+                                  color: Colors.white,
                                 ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  timeStr,
-                                  style: const TextStyle(
-                                      fontSize: 17,
-                                      letterSpacing: -1,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white),
-                                )
-                              ],
+                              ),
                             ),
+                            const SizedBox(width: 12),
                             Text(
-                              'Venue : $venue',
+                              timeStr,
                               style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            const Text(
-                              "Description",
-                              style: TextStyle(
-                                letterSpacing: -1,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 23,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              description,
-                              style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            const Text(
-                              "Previous Event Highlight",
-                              style: TextStyle(
-                                letterSpacing: -1,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 23,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 50,
-                                  backgroundColor: AppColors.cardColor,
-                                  child: Image.asset("assets/dogworkshop.png"),
-                                ),
-                                SizedBox(
-                                  width: width * 0.02,
-                                ),
-                                CircleAvatar(
-                                  radius: 50,
-                                  backgroundColor: AppColors.cardColor,
-                                  child: Image.asset("assets/dogworkshop.png"),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            const Text(
-                              "OUR EVENT",
-                              style: TextStyle(
-                                letterSpacing: -1,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 23,
-                                color: Colors.white,
-                              ),
-                            ),
-                            (() {
-                              final imgPath = event?.imageLocation ?? event?.imageUrl ?? "assets/workshopevent.png";
-                              if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
-                                return Image.network(
-                                  imgPath,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey),
-                                );
-                              }
-                              return Image.asset(
-                                imgPath,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey),
-                              );
-                            }()),
-                            if (preview == EventDraft.no) ...[
-                              const SizedBox(height: 24),
-                              ElevatedButton(
-                                onPressed: () => _handleRegistrationAction(
-                                    context, currentUser),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: event?.isRegistered == true
-                                      ? Colors.red
-                                      : AppColors.primary,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 18),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                child: Text(
-                                  event?.isRegistered == true
-                                      ? "DEREGISTER FROM EVENT"
-                                      : "REGISTER FOR EVENT",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 40),
+                                  fontSize: 17,
+                                  letterSpacing: -1,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white),
+                            )
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        Text(
+                          'Venue : $venue',
+                          style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          "Description",
+                          style: TextStyle(
+                            letterSpacing: -1,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 23,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          description,
+                          style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          "Previous Event Highlight",
+                          style: TextStyle(
+                            letterSpacing: -1,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 23,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 42,
+                              backgroundColor: AppColors.scaffoldBackground,
+                              child: ClipOval(
+                                child: Image.asset(
+                                  "assets/dogworkshop.png",
+                                  width: 80,
+                                  height: 80,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            CircleAvatar(
+                              radius: 42,
+                              backgroundColor: AppColors.scaffoldBackground,
+                              child: ClipOval(
+                                child: Image.asset(
+                                  "assets/dogworkshop.png",
+                                  width: 80,
+                                  height: 80,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          "OUR EVENT",
+                          style: TextStyle(
+                            letterSpacing: -1,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 23,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: (() {
+                            final imgPath = event?.imageLocation ?? event?.imageUrl ?? "assets/workshopevent.png";
+                            if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+                              return Image.network(
+                                imgPath,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 50),
+                              );
+                            }
+                            return Image.asset(
+                              imgPath,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 50),
+                            );
+                          }()),
+                        ),
+                        if (preview == EventDraft.no) ...[
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            onPressed: () => _handleRegistrationAction(
+                                context, currentUser),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: event?.isRegistered == true
+                                  ? Colors.red
+                                  : AppColors.primary,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: Text(
+                              event?.isRegistered == true
+                                  ? "DEREGISTER FROM EVENT"
+                                  : "REGISTER FOR EVENT",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 80),
+                      ],
+                    ),
                   ),
                 ),
               ],

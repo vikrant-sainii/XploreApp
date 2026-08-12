@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
                 return const UserPortalScreen();
               }
             }
-            if (state is AuthInitial || state is AuthLoading) {
+            if (state is AuthInitial) {
               return Scaffold(
                 backgroundColor: AppColors.scaffoldBackground,
                 body: const Center(

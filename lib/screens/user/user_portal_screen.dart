@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:xplore_app/screens/user/user_registered_events_screen.dart';
 import 'package:xplore_app/screens/user/user_upcoming_events_screen.dart';
 import 'package:xplore_app/screens/user/user_home_screen.dart';
@@ -39,9 +38,13 @@ class _UserPortalScreenState extends State<UserPortalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
       body: Stack(
         children: [
-          screen[currentindex],
+          IndexedStack(
+            index: currentindex,
+            children: screen,
+          ),
           CustomBottomNavBar(
             currentindex: currentindex,
             onTap: _modifyindex,
@@ -84,33 +87,31 @@ class CustomBottomNavBar extends StatelessWidget {
           children: [
             IconButton(
               onPressed: () => onTap(0),
-              icon: const Icon(Icons.home),
-              iconSize: 30,
+              icon: const Icon(Icons.home_rounded),
+              iconSize: 28,
               color: (currentindex == 0) ? AppColors.primary : AppColors.textSecondary,
+              tooltip: 'Home',
             ),
             IconButton(
               onPressed: () => onTap(1),
-              icon: SvgPicture.asset(
-                'assets/icons/homenav.svg',
-                width: 26,
-                height: 26,
-                colorFilter: ColorFilter.mode(
-                  (currentindex == 1) ? AppColors.primary : AppColors.textSecondary,
-                  BlendMode.srcIn,
-                ),
-              ),
+              icon: const Icon(Icons.event_available_rounded),
+              iconSize: 28,
+              color: (currentindex == 1) ? AppColors.primary : AppColors.textSecondary,
+              tooltip: 'Registered Events',
             ),
             IconButton(
               onPressed: () => onTap(2),
-              icon: const Icon(Icons.group),
-              iconSize: 30,
+              icon: const Icon(Icons.calendar_month_rounded),
+              iconSize: 28,
               color: (currentindex == 2) ? AppColors.primary : AppColors.textSecondary,
+              tooltip: 'Upcoming Events',
             ),
             IconButton(
               onPressed: () => onTap(3),
-              icon: const Icon(Icons.person),
-              iconSize: 30,
+              icon: const Icon(Icons.person_rounded),
+              iconSize: 28,
               color: (currentindex == 3) ? AppColors.primary : AppColors.textSecondary,
+              tooltip: 'Profile',
             ),
           ],
         ),

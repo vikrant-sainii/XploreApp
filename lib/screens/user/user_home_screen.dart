@@ -278,70 +278,80 @@ class EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxHeight = MediaQuery.sizeOf(context).height;
     final maxWidth = MediaQuery.sizeOf(context).width;
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 4),
+      margin: const EdgeInsets.symmetric(vertical: 6),
       width: 0.9 * maxWidth,
-      height: 0.1 * maxHeight,
       decoration: BoxDecoration(
         color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.border, width: 1),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(25),
-              child: imagelocation.startsWith('http://') ||
-                      imagelocation.startsWith('https://')
-                  ? Image.network(
-                      imagelocation,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image, color: Colors.grey),
-                    )
-                  : Image.asset(
-                      imagelocation,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image, color: Colors.grey),
-                    ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 16),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: imagelocation.startsWith('http://') ||
+                          imagelocation.startsWith('https://')
+                      ? Image.network(
+                          imagelocation,
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.broken_image, color: Colors.grey, size: 30),
+                        )
+                      : Image.asset(
+                          imagelocation,
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.broken_image, color: Colors.grey, size: 30),
+                        ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            fontSize: 16),
+                      ),
+                      if (subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: AppColors.textSecondary, fontSize: 13),
+                        ),
+                      ],
+                    ],
                   ),
-                  if (subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                    ),
-                  ],
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                buildTrailing(type, onTap),
+              ],
             ),
-            const SizedBox(width: 16),
-            buildTrailing(type, onTap),
-          ],
+          ),
         ),
       ),
     );
@@ -361,43 +371,49 @@ class XploreTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
 
     return Container(
-      height: height * 0.04,
+      height: 52,
       margin: EdgeInsets.symmetric(
         horizontal: width * 0.05,
-        vertical: 3,
+        vertical: 6,
       ),
       decoration: BoxDecoration(
         color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(26),
         border: Border.all(color: AppColors.border, width: 1),
       ),
-      child: Row(
-        children: [
-          SizedBox(width: width * 0.1),
-          Expanded(
-            child: Center(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(26),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(26),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
-              ),
+                const Icon(
+                  FontAwesomeIcons.angleRight,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
+              ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(right: width * 0.05),
-            child: IconButton(
-              onPressed: onTap,
-              icon: Icon(FontAwesomeIcons.angleRight),
-              color: AppColors.primary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -405,7 +421,7 @@ class XploreTile extends StatelessWidget {
 
 PreferredSizeWidget customAppBar(double width, BuildContext context) {
   return PreferredSize(
-    preferredSize: const Size.fromHeight(40), // app bar height
+    preferredSize: const Size.fromHeight(56),
     child: SafeArea(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: width * 0.05),
@@ -413,11 +429,11 @@ PreferredSizeWidget customAppBar(double width, BuildContext context) {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Icon(
-              Icons.home,
-              size: 32,
+              Icons.home_rounded,
+              size: 30,
               color: Colors.white,
             ),
-            SizedBox(width: width * 0.04),
+            SizedBox(width: width * 0.03),
             const Text(
               "Welcome Home",
               style: TextStyle(
@@ -426,10 +442,11 @@ PreferredSizeWidget customAppBar(double width, BuildContext context) {
                 color: Colors.white,
               ),
             ),
-            const Spacer(), // pushes logout button to right
+            const Spacer(),
             IconButton(
-              iconSize: 28,
-              icon: const Icon(Icons.apps, color: Colors.white),
+              iconSize: 26,
+              icon: const Icon(Icons.apps_rounded, color: Colors.white),
+              tooltip: "My Clubs",
               onPressed: () {
                 Navigator.push(
                   context,
