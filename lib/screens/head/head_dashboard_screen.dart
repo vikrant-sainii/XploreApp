@@ -6,7 +6,10 @@ import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
 import 'package:xplore_app/models/user_model.dart';
 import 'package:xplore_app/screens/user/login_screen.dart';
+import 'package:xplore_app/screens/head/head_send_notification_screen.dart';
+import 'package:xplore_app/screens/head/head_checkin_screen.dart';
 import 'package:xplore_app/config/theme.dart';
+
 
 class HeadDashboardScreen extends StatelessWidget {
   final Function(int) changeindex;
@@ -240,6 +243,8 @@ class HeadDashboardScreen extends StatelessWidget {
     );
   }
 
+
+
   Widget _buildDashboardGrid(BuildContext context) {
     return GridView.count(
       shrinkWrap: true,
@@ -257,13 +262,14 @@ class HeadDashboardScreen extends StatelessWidget {
           onTap: () => changeindex(3),
         ),
         _buildActionCard(
-          "Member\nManagement",
-          FontAwesomeIcons.masksTheater,
+          "QR Check-In\nAttendance",
+          FontAwesomeIcons.qrcode,
           AppColors.cardColor,
           Colors.white,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Member Management module coming soon.")),
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const HeadCheckinScreen()),
             );
           },
         ),
@@ -273,25 +279,23 @@ class HeadDashboardScreen extends StatelessWidget {
           AppColors.cardColor,
           Colors.white,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Announcements module coming soon.")),
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const HeadSendNotificationScreen()),
             );
           },
         ),
         _buildActionCard(
-          "Task\nManagement",
-          FontAwesomeIcons.creditCard,
+          "Add New\nEvent",
+          FontAwesomeIcons.circlePlus,
           AppColors.cardColor,
           Colors.white,
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Task Management module coming soon.")),
-            );
-          },
+          onTap: () => changeindex(1),
         ),
       ],
     );
   }
+
 
   Widget _buildActionCard(String title, IconData icon, Color bg, Color text, {VoidCallback? onTap}) {
     return Container(

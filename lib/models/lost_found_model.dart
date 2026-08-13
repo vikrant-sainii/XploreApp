@@ -26,6 +26,11 @@ class LostFoundModel extends Equatable {
     this.user,
   });
 
+  bool get isLost => type.toUpperCase() == 'LOST';
+  bool get isFound => type.toUpperCase() == 'FOUND';
+  bool get isReunited => type.toUpperCase() == 'REUNITED';
+
+
   factory LostFoundModel.fromJson(Map<String, dynamic> json) {
     return LostFoundModel(
       id: json['id'] ?? json['_id'] ?? '',

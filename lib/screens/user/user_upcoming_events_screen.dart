@@ -113,34 +113,40 @@ class UserUpcomingEventsScreen extends StatelessWidget {
                               ),
                             );
                           }
-                          return ListView.builder(
-                            itemCount: upcoming.length,
-                            padding: const EdgeInsets.only(bottom: 120),
-                            itemBuilder: (BuildContext context, int index) {
-                              final event = upcoming[index];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                child: EventTile(
-                                  imagelocation: event.imageLocation ?? 'assets/octave.png',
-                                  title: event.title,
-                                  subtitle: event.subtitle ?? '',
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => UserEventDetailsScreen(
-                                          event: event,
-                                          changeindex: changeindex,
-                                          preview: EventDraft.no,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  type: TrailingType.typeUpcoming,
-                                ),
-                              );
+                          return RefreshIndicator(
+                            onRefresh: () async {
+                              context.read<EventBloc>().add(FetchAllEvents());
                             },
+                            child: ListView.builder(
+                              itemCount: upcoming.length,
+                              padding: const EdgeInsets.only(bottom: 120),
+                              itemBuilder: (BuildContext context, int index) {
+                                final event = upcoming[index];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: EventTile(
+                                    imagelocation: event.imageLocation ?? 'assets/octave.png',
+                                    title: event.title,
+                                    subtitle: event.subtitle ?? '',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => UserEventDetailsScreen(
+                                            event: event,
+                                            changeindex: changeindex,
+                                            preview: EventDraft.no,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    type: TrailingType.typeUpcoming,
+                                  ),
+                                );
+                              },
+                            ),
                           );
+
                         }
                         return const SizedBox.shrink();
                       },

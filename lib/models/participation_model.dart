@@ -15,6 +15,8 @@ class ParticipationModel extends Equatable {
   final UserModel? student;
   final String? transactionId;
   final String? paymentReviewMessage;
+  final String? externalEmail;
+  final String? externalName;
 
   const ParticipationModel({
     required this.id,
@@ -29,7 +31,13 @@ class ParticipationModel extends Equatable {
     this.student,
     this.transactionId,
     this.paymentReviewMessage,
+    this.externalEmail,
+    this.externalName,
   });
+
+  bool get isAttended => status.toUpperCase() == 'ATTENDED';
+
+
 
   factory ParticipationModel.fromJson(Map<String, dynamic> json) {
     // 1. Handle eventId (can be String or populated Map from backend)
@@ -87,8 +95,11 @@ class ParticipationModel extends Equatable {
       student: parsedStudent,
       transactionId: json['transactionId']?.toString(),
       paymentReviewMessage: json['paymentReviewMessage']?.toString(),
+      externalEmail: json['externalEmail']?.toString(),
+      externalName: json['externalName']?.toString(),
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {

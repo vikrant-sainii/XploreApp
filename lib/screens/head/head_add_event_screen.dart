@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import 'package:xplore_app/blocs/head/head_bloc.dart';
-import 'package:xplore_app/services/event_service.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class HeadAddEventScreen extends StatefulWidget {
@@ -28,7 +27,6 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
   final _maxParticipantsController = TextEditingController();
   final _contactController = TextEditingController();
 
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -73,17 +71,13 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
     }
   }
 
-  Future<void> _submitEvent(bool isDraft) async {
+  void _submitEvent(bool isDraft) {
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Event Title cannot be empty")),
       );
       return;
     }
-
-    setState(() {
-      _isLoading = true;
-    });
 
     try {
       final authState = context.read<AuthBloc>().state;
@@ -150,48 +144,52 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
         "endTime": endDateTime.toIso8601String(),
         "totalSeats": maxParticipants,
         "entryFee": 0.0,
-        "imageLocation": _posterController.text.trim().isNotEmpty 
-            ? _posterController.text.trim() 
-            : "assets/workshopevent.png",
+        "registrationFee": 0.0,
+        "paymentMethod": "FREE",
+        "registrationType": "individual",
+        "minTeamSize": 1,
+        "maxTeamSize": 1,
         "imageUrl": _posterController.text.trim().isNotEmpty 
             ? _posterController.text.trim() 
-            : "assets/workshopevent.png",
+            : "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
+        "imageLocation": _posterController.text.trim().isNotEmpty 
+            ? _posterController.text.trim() 
+            : "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
         if (myClubId != null) "clubId": myClubId,
-        "allowedPrograms": ["BTECH", "MTECH"],
-        "allowedYears": ["1", "2", "3", "4"],
-        "allowedBranches": ["CSE", "ECE", "ME", "CE"],
+        "allowedPrograms": ["BTECH", "MTECH", "OTHER"],
+        "allowedYears": [],
+        "allowedBranches": [],
         "reviewStatus": isDraft ? "draft" : "approved",
       };
 
-      await EventService().createEvent(payload);
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(isDraft ? "Event saved as draft!" : "Event published successfully!")),
-      );
-
-      context.read<EventBloc>().add(FetchAllEvents());
-      context.read<HeadBloc>().add(FetchDashboardStats());
-
-      widget.changeindex(3);
+      context.read<HeadBloc>().add(CreateEventRequested(payload));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to submit event: $e")),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to submit event: $e")),
+      );
     }
+
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<HeadBloc, HeadState>(
+      listener: (context, state) {
+        if (state is HeadEventOperationSuccess && state.actionType == 'create') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+          context.read<EventBloc>().add(FetchAllEvents());
+          context.read<HeadBloc>().add(FetchDashboardStats());
+          widget.changeindex(3);
+        } else if (state is HeadError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      child: Scaffold(
+
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         scrolledUnderElevation: 0,
@@ -384,19 +382,28 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
                   ],
                 ),
               ),
-              if (_isLoading)
-                Container(
-                  color: Colors.black45,
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+              BlocBuilder<HeadBloc, HeadState>(
+                builder: (context, state) {
+                  if (state is HeadLoading) {
+                    return Container(
+                      color: Colors.black45,
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ],
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
+
+
 
   Widget _buildSubmitButton(String label, VoidCallback onPressed) {
     return ElevatedButton(

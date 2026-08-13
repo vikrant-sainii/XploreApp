@@ -129,34 +129,40 @@ class UserRegisteredEventsScreen extends StatelessWidget {
                               ),
                             );
                           }
-                          return ListView.builder(
-                            itemCount: registered.length,
-                            padding: const EdgeInsets.only(bottom: 120),
-                            itemBuilder: (BuildContext context, int index) {
-                              final event = registered[index];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                child: EventTile(
-                                  imagelocation: event.imageLocation ?? 'assets/octave.png',
-                                  title: event.title,
-                                  subtitle: event.subtitle ?? '',
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => UserEventDetailsScreen(
-                                          event: event,
-                                          changeindex: changeindex,
-                                          preview: EventDraft.no,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  type: TrailingType.typeRegistered,
-                                ),
-                              );
+                          return RefreshIndicator(
+                            onRefresh: () async {
+                              context.read<EventBloc>().add(FetchAllEvents());
                             },
+                            child: ListView.builder(
+                              itemCount: registered.length,
+                              padding: const EdgeInsets.only(bottom: 120),
+                              itemBuilder: (BuildContext context, int index) {
+                                final event = registered[index];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: EventTile(
+                                    imagelocation: event.imageLocation ?? 'assets/octave.png',
+                                    title: event.title,
+                                    subtitle: event.subtitle ?? '',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => UserEventDetailsScreen(
+                                            event: event,
+                                            changeindex: changeindex,
+                                            preview: EventDraft.no,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    type: TrailingType.typeRegistered,
+                                  ),
+                                );
+                              },
+                            ),
                           );
+
                         }
                         return const SizedBox.shrink();
                       },

@@ -181,12 +181,24 @@ class EventService {
         return EventModel.fromJson(jsonDecode(response.body));
       } else {
         final data = jsonDecode(response.body);
-        throw Exception(data['message'] ?? 'Failed to create event');
+        String msg = data['message'] ?? data['error'] ?? '';
+        if (data['errors'] != null) {
+          if (data['errors'] is List) {
+            msg += (msg.isNotEmpty ? ': ' : '') + (data['errors'] as List).join(', ');
+          } else if (data['errors'] is Map) {
+            msg += (msg.isNotEmpty ? ': ' : '') + (data['errors'] as Map).values.join(', ');
+          }
+        }
+        if (msg.isEmpty) {
+          msg = 'Validation or request failed (${response.statusCode})';
+        }
+        throw Exception(msg);
       }
     } catch (e) {
-      throw Exception('Error creating event: $e');
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
   }
+
 
   // PUT /api/events/:id - Update an event
   Future<EventModel> updateEvent(String eventId, Map<String, dynamic> eventData) async {

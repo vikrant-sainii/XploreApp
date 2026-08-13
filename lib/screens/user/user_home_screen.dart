@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
 import 'package:xplore_app/screens/user/user_clubs_screen.dart';
 import 'package:xplore_app/screens/user/user_event_details_screen.dart';
+import 'package:xplore_app/screens/user/notifications_screen.dart';
+import 'package:xplore_app/screens/user/lost_found_screen.dart';
 import 'package:xplore_app/config/theme.dart';
+
 
 class UserHomeScreen extends StatelessWidget {
   final Function(int) changeindex;
@@ -420,6 +423,7 @@ class XploreTile extends StatelessWidget {
 }
 
 PreferredSizeWidget customAppBar(double width, BuildContext context) {
+
   return PreferredSize(
     preferredSize: const Size.fromHeight(56),
     child: SafeArea(
@@ -435,23 +439,44 @@ PreferredSizeWidget customAppBar(double width, BuildContext context) {
             ),
             SizedBox(width: width * 0.03),
             const Text(
-              "Welcome Home",
+              "Welcome",
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
             ),
-            const Spacer(),
+            SizedBox(width: width * 0.1),
             IconButton(
-              iconSize: 26,
+              iconSize: 24,
+              icon: const Icon(Icons.notifications_active_rounded, color: Colors.white),
+              tooltip: "Announcements",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                );
+              },
+            ),
+            IconButton(
+              iconSize: 24,
+              icon: const Icon(FontAwesomeIcons.boxOpen, color: Colors.white, size: 20),
+              tooltip: "Lost & Found",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LostFoundScreen()),
+                );
+              },
+            ),
+            IconButton(
+              iconSize: 24,
               icon: const Icon(Icons.apps_rounded, color: Colors.white),
               tooltip: "My Clubs",
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const UserClubsScreen()),
+                  MaterialPageRoute(builder: (context) => const UserClubsScreen()),
                 );
               },
             ),
@@ -461,3 +486,4 @@ PreferredSizeWidget customAppBar(double width, BuildContext context) {
     ),
   );
 }
+

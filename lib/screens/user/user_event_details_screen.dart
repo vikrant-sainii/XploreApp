@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/config/theme.dart';
 import 'package:xplore_app/models/event_model.dart';
 import 'package:xplore_app/models/user_model.dart';
-import 'package:xplore_app/services/event_service.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+
 
 enum EventDraft { yes, no } //function optimisation
 
@@ -30,7 +30,7 @@ class UserEventDetailsScreen extends StatelessWidget {
     return "$hour.$minute $ampm";
   }
 
-  void _handleRegistrationAction(BuildContext context, UserModel? user) async {
+  void _handleRegistrationAction(BuildContext context, UserModel? user) {
     if (event == null) return;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -39,55 +39,19 @@ class UserEventDetailsScreen extends StatelessWidget {
       return;
     }
 
-    final eventService = EventService();
     final isRegistered = event!.isRegistered;
-
-    // Show a loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    Map<String, dynamic> result;
     if (isRegistered) {
-      result = await eventService.deregisterFromEvent(event!.id, user.id);
+      context.read<EventBloc>().add(DeregisterFromEvent(
+            eventId: event!.id,
+            studentId: user.id,
+          ));
     } else {
-      result = await eventService.registerForEvent(event!.id);
-    }
-
-    if (context.mounted) {
-      // Dismiss loading dialog
-      Navigator.pop(context);
-    }
-
-    if (result['success'] == true) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ??
-                (isRegistered
-                    ? "Deregistered successfully!"
-                    : "Registered successfully!")),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Trigger event list refresh
-        context.read<EventBloc>().add(FetchAllEvents());
-        // Go back
-        Navigator.pop(context);
-      }
-    } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? "Action failed."),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      context.read<EventBloc>().add(RegisterForEvent(
+            eventId: event!.id,
+          ));
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +66,27 @@ class UserEventDetailsScreen extends StatelessWidget {
     final description = event?.description ?? "Lorem ipsum dolor sit amet...";
     final timeStr = _formatDateTime(event?.startTime);
 
-    return Scaffold(
+    return BlocListener<EventBloc, EventState>(
+      listener: (context, state) {
+        if (state is EventOperationSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        } else if (state is EventError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+
       appBar: AppBar(
         scrolledUnderElevation: 0,
         backgroundColor: AppColors.scaffoldBackground,
@@ -356,6 +340,9 @@ class UserEventDetailsScreen extends StatelessWidget {
           );
         },
       ),
-    );
-  }
+    ),
+  );
 }
+
+}
+

@@ -63,5 +63,56 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         emit(EventError(e.toString()));
       }
     });
+
+    on<RegisterForEvent>((event, emit) async {
+      emit(EventLoading());
+      try {
+        final result = await _eventService.registerForEvent(
+          event.eventId,
+          externalEmail: event.externalEmail,
+          externalName: event.externalName,
+          transactionId: event.transactionId,
+          payerName: event.payerName,
+          paymentRemarks: event.paymentRemarks,
+          formResponses: event.formResponses,
+        );
+
+        if (result['success'] == true) {
+          emit(EventOperationSuccess(
+            message: result['message'] ?? 'Registered successfully',
+            qrCode: result['qrCode'],
+            actionType: 'register',
+          ));
+          add(FetchAllEvents());
+        } else {
+          emit(EventError(result['message'] ?? 'Registration failed'));
+        }
+      } catch (e) {
+        emit(EventError(e.toString()));
+      }
+    });
+
+    on<DeregisterFromEvent>((event, emit) async {
+      emit(EventLoading());
+      try {
+        final result = await _eventService.deregisterFromEvent(
+          event.eventId,
+          event.studentId,
+        );
+
+        if (result['success'] == true) {
+          emit(EventOperationSuccess(
+            message: result['message'] ?? 'Deregistered successfully',
+            actionType: 'deregister',
+          ));
+          add(FetchAllEvents());
+        } else {
+          emit(EventError(result['message'] ?? 'Deregistration failed'));
+        }
+      } catch (e) {
+        emit(EventError(e.toString()));
+      }
+    });
   }
 }
+

@@ -25,6 +25,21 @@ class EventsLoaded extends EventState {
   List<Object?> get props => [registeredEvents, upcomingEvents];
 }
 
+class EventOperationSuccess extends EventState {
+  final String message;
+  final String? qrCode;
+  final String actionType; // 'register' or 'deregister'
+
+  const EventOperationSuccess({
+    required this.message,
+    this.qrCode,
+    required this.actionType,
+  });
+
+  @override
+  List<Object?> get props => [message, qrCode, actionType];
+}
+
 class EventError extends EventState {
   final String message;
 
@@ -33,3 +48,4 @@ class EventError extends EventState {
   @override
   List<Object?> get props => [message];
 }
+
