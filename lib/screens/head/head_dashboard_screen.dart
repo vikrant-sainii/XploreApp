@@ -345,6 +345,11 @@ class HeadDashboardScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         BlocBuilder<EventBloc, EventState>(
+          buildWhen: (previous, current) =>
+              current is EventsLoaded ||
+              (current is EventInitial) ||
+              (current is EventLoading && previous is! EventsLoaded) ||
+              (current is EventError && previous is! EventsLoaded),
           builder: (context, state) {
             if (state is EventLoading) {
               return const Center(child: CircularProgressIndicator());

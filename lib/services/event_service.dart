@@ -118,9 +118,13 @@ class EventService {
           'qrCode': data['qrCode'],
         };
       } else {
+        String msg = data['message'] ?? data['error'] ?? 'Registration failed';
+        if (msg.toLowerCase().contains('qr_signing') || msg.toLowerCase().contains('private key')) {
+          msg = 'Backend Server Error: QR_SIGNING_PRIVATE_KEY is not set in the server environment variables (Render dashboard).';
+        }
         return {
           'success': false,
-          'message': data['message'] ?? 'Registration failed',
+          'message': msg,
         };
       }
     } catch (e) {

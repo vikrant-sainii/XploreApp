@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import 'package:xplore_app/config/theme.dart';
+import 'package:xplore_app/config/string_utils.dart';
 
 class HeadEventPreviewScreen extends StatefulWidget {
   final Function(int) changeindex;
@@ -71,10 +72,10 @@ class _HeadEventPreviewScreenState extends State<HeadEventPreviewScreen> {
         final filteredEvents = allEvents.where((e) => e.clubId == myClubId).toList();
         if (filteredEvents.isNotEmpty) {
           final ev = filteredEvents.first;
-          _titleController.text = ev.title;
-          _venueController.text = ev.venue ?? "WE1";
+          _titleController.text = cleanHtmlText(ev.title);
+          _venueController.text = cleanHtmlText(ev.venue) .isNotEmpty ? cleanHtmlText(ev.venue) : "WE1";
           _timeController.text = _formatDateTime(ev.startTime);
-          _descriptionController.text = ev.description ?? "";
+          _descriptionController.text = cleanHtmlText(ev.description);
         }
       }
       _isInitialized = true;

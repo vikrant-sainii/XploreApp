@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:xplore_app/config/string_utils.dart';
 
 class EventCreatorModel extends Equatable {
   final String id;
@@ -12,7 +13,7 @@ class EventCreatorModel extends Equatable {
   factory EventCreatorModel.fromJson(Map<String, dynamic> json) {
     return EventCreatorModel(
       id: json['id'] ?? json['_id'] ?? '',
-      name: json['name'] ?? '',
+      name: cleanHtmlText(json['name'] as String?),
     );
   }
 
@@ -43,10 +44,12 @@ class EventClubInfoModel extends Equatable {
   });
 
   factory EventClubInfoModel.fromJson(Map<String, dynamic> json) {
+    final rawLogo = json['clubLogo'] ?? json['logo'];
+    final resolvedLogo = formatImageUrl(rawLogo);
     return EventClubInfoModel(
       id: json['id'] ?? json['_id'] ?? '',
-      name: json['clubName'] ?? json['name'] ?? '',
-      clubLogo: json['clubLogo'],
+      name: cleanHtmlText(json['clubName'] ?? json['name']),
+      clubLogo: resolvedLogo.isNotEmpty ? resolvedLogo : null,
       slug: json['slug'] ?? '',
       category: json['category'],
     );
@@ -86,6 +89,8 @@ class EventModel extends Equatable {
   final List<String> requiredFields;
   final String? createdById;
   final String? clubId;
+  final String? organizerType;
+  final String? centralOrganizerId;
   final DateTime? registrationDeadline;
   final String? reviewStatus;
   final List<dynamic>? winners;
@@ -99,6 +104,7 @@ class EventModel extends Equatable {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final EventCreatorModel? createdBy;
+  final EventCreatorModel? centralOrganizer;
   final EventClubInfoModel? club;
 
   // Backward compatibility with previous dummy fields
@@ -126,6 +132,8 @@ class EventModel extends Equatable {
     this.requiredFields = const [],
     this.createdById,
     this.clubId,
+    this.organizerType,
+    this.centralOrganizerId,
     this.registrationDeadline,
     this.reviewStatus,
     this.winners,
@@ -139,6 +147,7 @@ class EventModel extends Equatable {
     this.createdAt,
     this.updatedAt,
     this.createdBy,
+    this.centralOrganizer,
     this.club,
     this.subtitle,
     this.imageLocation,
@@ -146,12 +155,47 @@ class EventModel extends Equatable {
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
+    final rawImg = json['imageUrl'] ?? json['imageLocation'];
+    final mediaList = json['media'];
+    final resolvedImage = formatImageUrl(rawImg, media: mediaList);
+
+    EventCreatorModel? centralOrg;
+    if (json['centralOrganizer'] != null && json['centralOrganizer'] is Map<String, dynamic>) {
+      centralOrg = EventCreatorModel.fromJson(json['centralOrganizer']);
+    }
+
+    EventClubInfoModel? clubInfo;
+    if (json['club'] != null && json['club'] is Map<String, dynamic>) {
+      clubInfo = EventClubInfoModel.fromJson(json['club']);
+    } else if (centralOrg != null && centralOrg.name.isNotEmpty) {
+      final profileImg = json['centralOrganizer'] is Map ? json['centralOrganizer']['profileImage'] : null;
+      clubInfo = EventClubInfoModel(
+        id: centralOrg.id,
+        name: centralOrg.name,
+        slug: '',
+        category: 'CENTRAL',
+        clubLogo: formatImageUrl(profileImg),
+      );
+    } else {
+      final clubName = json['clubName'] ?? (json['createdBy'] is Map ? json['createdBy']['name'] : null);
+      final clubCat = json['clubCategory'] ?? json['category'];
+      if (clubName != null || clubCat != null) {
+        clubInfo = EventClubInfoModel(
+          id: json['clubId'] ?? '',
+          name: cleanHtmlText(clubName as String?),
+          slug: '',
+          category: clubCat as String?,
+          clubLogo: formatImageUrl(json['clubLogo']),
+        );
+      }
+    }
+
     return EventModel(
       id: json['id'] ?? json['_id'] ?? '',
-      title: json['title'] ?? '',
+      title: cleanHtmlText(json['title'] as String?),
       slug: json['slug'] ?? '',
-      description: json['description'],
-      venue: json['venue'],
+      description: json['description'] != null ? cleanHtmlText(json['description'] as String?) : null,
+      venue: json['venue'] != null ? cleanHtmlText(json['venue'] as String?) : null,
       startTime: json['startTime'] != null ? DateTime.tryParse(json['startTime']) : null,
       endTime: json['endTime'] != null ? DateTime.tryParse(json['endTime']) : null,
       totalSeats: json['totalSeats'],
@@ -159,13 +203,15 @@ class EventModel extends Equatable {
       allowedPrograms: List<String>.from(json['allowedPrograms'] ?? []),
       allowedYears: List<String>.from(json['allowedYears'] ?? []),
       allowedBranches: List<String>.from(json['allowedBranches'] ?? []),
-      imageUrl: json['imageUrl'] ?? json['imageLocation'],
+      imageUrl: resolvedImage.isNotEmpty ? resolvedImage : null,
       registeredCount: json['registeredCount'] ?? 0,
       views: json['views'] ?? 0,
       waitingListIds: List<String>.from(json['waitingListIds'] ?? []),
       requiredFields: List<String>.from(json['requiredFields'] ?? []),
       createdById: json['createdById'],
       clubId: json['clubId'],
+      organizerType: json['organizerType'],
+      centralOrganizerId: json['centralOrganizerId'],
       registrationDeadline: json['registrationDeadline'] != null
           ? DateTime.tryParse(json['registrationDeadline'])
           : null,
@@ -182,10 +228,13 @@ class EventModel extends Equatable {
           : 0.0,
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
-      createdBy: json['createdBy'] != null ? EventCreatorModel.fromJson(json['createdBy']) : null,
-      club: json['club'] != null ? EventClubInfoModel.fromJson(json['club']) : null,
+      createdBy: json['createdBy'] != null && json['createdBy'] is Map<String, dynamic>
+          ? EventCreatorModel.fromJson(json['createdBy'])
+          : null,
+      centralOrganizer: centralOrg,
+      club: clubInfo,
       subtitle: json['subtitle'] ?? json['venue'] ?? '',
-      imageLocation: json['imageLocation'] ?? json['imageUrl'] ?? '',
+      imageLocation: resolvedImage.isNotEmpty ? resolvedImage : null,
       isRegistered: json['isRegistered'] ?? false,
     );
   }

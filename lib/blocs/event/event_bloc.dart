@@ -65,7 +65,11 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     });
 
     on<RegisterForEvent>((event, emit) async {
-      emit(EventLoading());
+      EventsLoaded? previousState;
+      if (state is EventsLoaded) {
+        previousState = state as EventsLoaded;
+      }
+
       try {
         final result = await _eventService.registerForEvent(
           event.eventId,
@@ -85,15 +89,30 @@ class EventBloc extends Bloc<EventEvent, EventState> {
           ));
           add(FetchAllEvents());
         } else {
-          emit(EventError(result['message'] ?? 'Registration failed'));
+          final errorMsg = result['message'] ?? 'Registration failed';
+          emit(EventError(errorMsg));
+          if (previousState != null) {
+            emit(previousState);
+          } else {
+            add(FetchAllEvents());
+          }
         }
       } catch (e) {
         emit(EventError(e.toString()));
+        if (previousState != null) {
+          emit(previousState);
+        } else {
+          add(FetchAllEvents());
+        }
       }
     });
 
     on<DeregisterFromEvent>((event, emit) async {
-      emit(EventLoading());
+      EventsLoaded? previousState;
+      if (state is EventsLoaded) {
+        previousState = state as EventsLoaded;
+      }
+
       try {
         final result = await _eventService.deregisterFromEvent(
           event.eventId,
@@ -107,10 +126,21 @@ class EventBloc extends Bloc<EventEvent, EventState> {
           ));
           add(FetchAllEvents());
         } else {
-          emit(EventError(result['message'] ?? 'Deregistration failed'));
+          final errorMsg = result['message'] ?? 'Deregistration failed';
+          emit(EventError(errorMsg));
+          if (previousState != null) {
+            emit(previousState);
+          } else {
+            add(FetchAllEvents());
+          }
         }
       } catch (e) {
         emit(EventError(e.toString()));
+        if (previousState != null) {
+          emit(previousState);
+        } else {
+          add(FetchAllEvents());
+        }
       }
     });
   }

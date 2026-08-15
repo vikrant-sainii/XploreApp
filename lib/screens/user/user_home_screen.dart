@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
-import 'package:xplore_app/screens/user/user_clubs_screen.dart';
 import 'package:xplore_app/screens/user/user_event_details_screen.dart';
-import 'package:xplore_app/screens/user/notifications_screen.dart';
-import 'package:xplore_app/screens/user/lost_found_screen.dart';
 import 'package:xplore_app/config/theme.dart';
-
+import 'package:xplore_app/components/event_tile.dart';
+import 'package:xplore_app/components/custom_app_bar.dart';
 
 class UserHomeScreen extends StatelessWidget {
   final Function(int) changeindex;
@@ -49,7 +46,7 @@ class UserHomeScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 10),
                       ),
-                      child: Text(
+                      child: const Text(
                         "Tap to Xplore",
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
@@ -74,7 +71,7 @@ class UserHomeScreen extends StatelessWidget {
                         SizedBox(
                           width: width * 0.05,
                         ),
-                        Text(
+                        const Text(
                           "Registered Events",
                           style: TextStyle(
                               letterSpacing: -1,
@@ -92,12 +89,30 @@ class UserHomeScreen extends StatelessWidget {
                         horizontal: width * 0.05,
                       ),
                       child: BlocBuilder<EventBloc, EventState>(
+                        buildWhen: (previous, current) =>
+                            current is EventsLoaded ||
+                            (current is EventInitial) ||
+                            (current is EventLoading && previous is! EventsLoaded) ||
+                            (current is EventError && previous is! EventsLoaded),
                         builder: (context, state) {
                           if (state is EventLoading) {
                             return const Center(
                                 child: CircularProgressIndicator());
                           } else if (state is EventError) {
-                            return Center(child: Text(state.message));
+                            return Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                children: [
+                                  Text(state.message, style: const TextStyle(color: Colors.white70)),
+                                  const SizedBox(height: 8),
+                                  TextButton.icon(
+                                    onPressed: () => context.read<EventBloc>().add(FetchAllEvents()),
+                                    icon: const Icon(Icons.refresh, color: AppColors.primary, size: 16),
+                                    label: const Text("Retry", style: TextStyle(color: AppColors.primary)),
+                                  ),
+                                ],
+                              ),
+                            );
                           } else if (state is EventsLoaded) {
                             if (state.registeredEvents.isEmpty) {
                               return const Padding(
@@ -165,12 +180,30 @@ class UserHomeScreen extends StatelessWidget {
                         horizontal: width * 0.05,
                       ),
                       child: BlocBuilder<EventBloc, EventState>(
+                        buildWhen: (previous, current) =>
+                            current is EventsLoaded ||
+                            (current is EventInitial) ||
+                            (current is EventLoading && previous is! EventsLoaded) ||
+                            (current is EventError && previous is! EventsLoaded),
                         builder: (context, state) {
                           if (state is EventLoading) {
                             return const Center(
                                 child: CircularProgressIndicator());
                           } else if (state is EventError) {
-                            return Center(child: Text(state.message));
+                            return Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                children: [
+                                  Text(state.message, style: const TextStyle(color: Colors.white70)),
+                                  const SizedBox(height: 8),
+                                  TextButton.icon(
+                                    onPressed: () => context.read<EventBloc>().add(FetchAllEvents()),
+                                    icon: const Icon(Icons.refresh, color: AppColors.primary, size: 16),
+                                    label: const Text("Retry", style: TextStyle(color: AppColors.primary)),
+                                  ),
+                                ],
+                              ),
+                            );
                           } else if (state is EventsLoaded) {
                             if (state.upcomingEvents.isEmpty) {
                               return const Padding(
@@ -218,272 +251,4 @@ class UserHomeScreen extends StatelessWidget {
   }
 }
 
-//functions for optimisation
-enum TrailingType { typeUpcoming, typeRegistered }
-
-Widget buildTrailing(TrailingType type, VoidCallback? onTap) {
-  switch (type) {
-    case (TrailingType.typeUpcoming):
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("5:30 PM",
-                  style:
-                      TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            ],
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(FontAwesomeIcons.angleRight,
-                  size: 14, color: AppColors.primary),
-              GestureDetector(
-                onTap: onTap,
-                child: Text(
-                  "See More Info",
-                  style: TextStyle(
-                      letterSpacing: -1,
-                      fontSize: 12,
-                      color: AppColors.textPrimary),
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-    case (TrailingType.typeRegistered):
-      return IconButton(
-        onPressed: onTap,
-        icon: Icon(FontAwesomeIcons.angleRight),
-        color: AppColors.primary,
-      );
-  }
-}
-
-//Event Tile-registerd/upcoming
-class EventTile extends StatelessWidget {
-  final String imagelocation, title, subtitle;
-  final VoidCallback? onTap;
-  final TrailingType type;
-
-  const EventTile({
-    super.key,
-    required this.imagelocation,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    required this.type,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final maxWidth = MediaQuery.sizeOf(context).width;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      width: 0.9 * maxWidth,
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border, width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: imagelocation.startsWith('http://') ||
-                          imagelocation.startsWith('https://')
-                      ? Image.network(
-                          imagelocation,
-                          width: 52,
-                          height: 52,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.broken_image, color: Colors.grey, size: 30),
-                        )
-                      : Image.asset(
-                          imagelocation,
-                          width: 52,
-                          height: 52,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.broken_image, color: Colors.grey, size: 30),
-                        ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            fontSize: 16),
-                      ),
-                      if (subtitle.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                buildTrailing(type, onTap),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-//XploreMore Events Tile
-class XploreTile extends StatelessWidget {
-  final VoidCallback? onTap;
-  final String title;
-
-  const XploreTile({
-    super.key,
-    this.onTap,
-    this.title = "Xplore More",
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-
-    return Container(
-      height: 52,
-      margin: EdgeInsets.symmetric(
-        horizontal: width * 0.05,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: AppColors.border, width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(26),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(26),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  FontAwesomeIcons.angleRight,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-PreferredSizeWidget customAppBar(double width, BuildContext context) {
-
-  return PreferredSize(
-    preferredSize: const Size.fromHeight(56),
-    child: SafeArea(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: width * 0.05),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.home_rounded,
-              size: 30,
-              color: Colors.white,
-            ),
-            SizedBox(width: width * 0.03),
-            const Text(
-              "Welcome",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(width: width * 0.1),
-            IconButton(
-              iconSize: 24,
-              icon: const Icon(Icons.notifications_active_rounded, color: Colors.white),
-              tooltip: "Announcements",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                );
-              },
-            ),
-            IconButton(
-              iconSize: 24,
-              icon: const Icon(FontAwesomeIcons.boxOpen, color: Colors.white, size: 20),
-              tooltip: "Lost & Found",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LostFoundScreen()),
-                );
-              },
-            ),
-            IconButton(
-              iconSize: 24,
-              icon: const Icon(Icons.apps_rounded, color: Colors.white),
-              tooltip: "My Clubs",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const UserClubsScreen()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
 

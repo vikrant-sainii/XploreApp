@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'user_home_screen.dart';
+import 'package:xplore_app/components/event_tile.dart';
 import 'user_event_details_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
@@ -95,6 +95,11 @@ class UserRegisteredEventsScreen extends StatelessWidget {
                       right: width * 0.03,
                     ),
                     child: BlocBuilder<EventBloc, EventState>(
+                      buildWhen: (previous, current) =>
+                          current is EventsLoaded ||
+                          (current is EventInitial) ||
+                          (current is EventLoading && previous is! EventsLoaded) ||
+                          (current is EventError && previous is! EventsLoaded),
                       builder: (context, state) {
                         if (state is EventLoading) {
                           return const Center(child: CircularProgressIndicator());
