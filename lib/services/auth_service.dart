@@ -4,7 +4,7 @@ import '../config/env.dart';
 import '../models/user_model.dart';
 import 'secure_storage_service.dart';
 
-/// All auth routes are mapped 1-to-1 with the Express backend in auth.js.
+/// All auth routes are mapped 1-to-1 with the Express backend in auth.js and admin.js.
 class AuthService {
   // ─── Base URL ──────────────────────────────────────────────────────────────
   static String get baseUrl => '${EnvConfig.baseUrl}/auth';
@@ -34,7 +34,7 @@ class AuthService {
     await _storage.saveRole(role);
   }
 
-  /// Parses `{ success, user, role, userType, token, needs2FA }` payloads.
+  /// Parses `{ success, user, admin, role, userType, token, needs2FA }` payloads.
   Map<String, dynamic> _parseAuthResponse(
       http.Response response, Map<String, dynamic> data) {
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -48,9 +48,10 @@ class AuthService {
         };
       }
 
-      final userJson = data['user'] as Map<String, dynamic>?;
-      final role = data['role'] as String? ?? 'member';
-      final userType = data['userType'] as String? ?? 'student';
+      // Support both `data['user']` (from /auth/login/admin) and `data['admin']` (from /admin/login)
+      final userJson = (data['user'] ?? data['admin']) as Map<String, dynamic>?;
+      final role = data['role'] as String? ?? userJson?['role'] as String? ?? 'admin';
+      final userType = data['userType'] as String? ?? 'admin';
 
       return {
         'success': true,
@@ -95,7 +96,6 @@ class AuthService {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final result = _parseAuthResponse(response, data);
 
-      // In dev mode the backend auto-logs in; persist session if token present
       if (result['success'] == true && result['needs2FA'] == false) {
         final user = result['user'] as UserModel?;
         if (user != null) {
@@ -140,23 +140,41 @@ class AuthService {
   }
 
   // ─── ADMIN LOGIN ───────────────────────────────────────────────────────────
-  // POST /api/auth/login/admin
+  // Tries POST /api/admin/login (web client route) first, falls back to POST /api/auth/login/admin
   Future<Map<String, dynamic>> loginAdmin(
     String email,
     String password,
   ) async {
-    final url = Uri.parse('$baseUrl/login/admin');
     try {
-      final response = await http.post(
+      // 1. Primary route matching web client AdminLogin.jsx
+      var url = Uri.parse('${EnvConfig.baseUrl}/admin/login');
+      var response = await http.post(
         url,
         headers: _jsonHeaders,
         body: jsonEncode({'email': email, 'password': password}),
-      ).timeout(const Duration(seconds: 45));
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      ).timeout(const Duration(seconds: 30));
+
+      var data = jsonDecode(response.body) as Map<String, dynamic>;
+
+      // 2. Fallback to /api/auth/login/admin if /admin/login returned non-200
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final authAdminUrl = Uri.parse('$baseUrl/login/admin');
+        final authResponse = await http.post(
+          authAdminUrl,
+          headers: _jsonHeaders,
+          body: jsonEncode({'email': email, 'password': password}),
+        ).timeout(const Duration(seconds: 30));
+        if (authResponse.statusCode == 200 || authResponse.statusCode == 201) {
+          response = authResponse;
+          data = jsonDecode(authResponse.body) as Map<String, dynamic>;
+        }
+      }
+
       final result = _parseAuthResponse(response, data);
       if (result['success'] == true && result['needs2FA'] == false) {
         final user = result['user'] as UserModel?;
-        await _persistSession(data, user?.role ?? 'admin');
+        final role = result['role'] as String? ?? user?.role ?? 'admin';
+        await _persistSession(data, role);
       }
       return result;
     } catch (e) {
@@ -164,13 +182,12 @@ class AuthService {
       if (e.toString().contains('TimeoutException')) {
         msg = 'Backend server takes too long to respond. Please try again.';
       }
-      return {'success': false, 'message': msg};
+      return {'success': false, 'message': e.toString().contains('Timeout') ? msg : e.toString()};
     }
   }
 
   // ─── EXTERNAL REGISTRATION ─────────────────────────────────────────────────
   // POST /api/auth/register/external
-  // Sends an OTP to the provided email; no password needed.
   Future<Map<String, dynamic>> registerExternal(
     String name,
     String email,
@@ -218,7 +235,6 @@ class AuthService {
 
   // ─── 2FA VERIFICATION ──────────────────────────────────────────────────────
   // POST /api/auth/verify-2fa
-  // Used for both student and admin 2FA flows.
   Future<Map<String, dynamic>> verify2FA(String email, String otp) async {
     final url = Uri.parse('$baseUrl/verify-2fa');
     try {
@@ -240,7 +256,6 @@ class AuthService {
   }
 
   // ─── EMAIL VERIFICATION ────────────────────────────────────────────────────
-  // GET /api/auth/verify-email/:token
   Future<Map<String, dynamic>> verifyEmail(String token) async {
     final url = Uri.parse('$baseUrl/verify-email/$token');
     try {
@@ -256,8 +271,6 @@ class AuthService {
   }
 
   // ─── FORGOT PASSWORD ───────────────────────────────────────────────────────
-  // POST /api/auth/forgot-password
-  // Works for both students and admins; backend identifies by email.
   Future<Map<String, dynamic>> forgotPassword(String email) async {
     final url = Uri.parse('$baseUrl/forgot-password');
     try {
@@ -277,8 +290,6 @@ class AuthService {
   }
 
   // ─── RESET PASSWORD ────────────────────────────────────────────────────────
-  // POST /api/auth/reset-password/:token
-  // `token` is the raw token from the reset email URL (backend will hash it).
   Future<Map<String, dynamic>> resetPassword(
     String token,
     String newPassword,
@@ -288,7 +299,7 @@ class AuthService {
       final response = await http.post(
         url,
         headers: _jsonHeaders,
-        body: jsonEncode({'newPassword': newPassword}), // ← key matches backend
+        body: jsonEncode({'newPassword': newPassword}),
       );
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return {
@@ -301,7 +312,6 @@ class AuthService {
   }
 
   // ─── CHANGE PASSWORD ───────────────────────────────────────────────────────
-  // POST /api/auth/change-password   (requires JWT)
   Future<Map<String, dynamic>> changePassword(
     String currentPassword,
     String newPassword,
@@ -313,7 +323,7 @@ class AuthService {
         url,
         headers: headers,
         body: jsonEncode({
-          'currentPassword': currentPassword, // ← key matches backend
+          'currentPassword': currentPassword,
           'newPassword': newPassword,
         }),
       );
@@ -328,24 +338,16 @@ class AuthService {
   }
 
   // ─── LOGOUT ────────────────────────────────────────────────────────────────
-  // POST /api/auth/logout  — clears the httpOnly cookie on the server side,
-  // and deletes local secure storage.
   Future<Map<String, dynamic>> logout() async {
     final url = Uri.parse('$baseUrl/logout');
     try {
       await http.post(url, headers: _jsonHeaders);
-    } catch (_) {
-      // Best-effort: still clear local storage even if server call fails
-    }
+    } catch (_) {}
     await _storage.deleteAll();
     return {'success': true};
   }
 
   // ─── SESSION HELPERS ───────────────────────────────────────────────────────
-
-  /// Returns the stored JWT, or null if the user is not logged in.
   Future<String?> getToken() => _storage.getToken();
-
-  /// Returns the stored role string, or null.
   Future<String?> getRole() => _storage.getRole();
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/admin/admin_bloc.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import 'package:xplore_app/blocs/club/club_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
@@ -8,6 +9,7 @@ import 'package:xplore_app/blocs/notification/notification_bloc.dart';
 import 'package:xplore_app/blocs/participation/participation_bloc.dart';
 import 'package:xplore_app/blocs/team/team_bloc.dart';
 import 'package:xplore_app/blocs/lost_found/lost_found_bloc.dart';
+import 'package:xplore_app/screens/admin/admin_portal_screen.dart';
 import 'package:xplore_app/screens/user/login_screen.dart';
 import 'package:xplore_app/screens/user/user_portal_screen.dart';
 import 'package:xplore_app/screens/head/head_portal_screen.dart';
@@ -34,6 +36,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<EventBloc>(
             create: (context) => EventBloc()..add(FetchAllEvents())),
         BlocProvider<HeadBloc>(create: (context) => HeadBloc()),
+        BlocProvider<AdminBloc>(create: (context) => AdminBloc()),
         BlocProvider<NotificationBloc>(create: (context) => NotificationBloc()),
         BlocProvider<ParticipationBloc>(create: (context) => ParticipationBloc()),
         BlocProvider<TeamBloc>(create: (context) => TeamBloc()),
@@ -43,7 +46,9 @@ class MyApp extends StatelessWidget {
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             if (state is Authenticated) {
-              if (state.role == 'club') {
+              if (state.role == 'admin' || state.role == 'paymentAdmin') {
+                return AdminPortalScreen(adminRole: state.role);
+              } else if (state.role == 'club') {
                 return const HeadPortalScreen();
               } else {
                 return const UserPortalScreen();

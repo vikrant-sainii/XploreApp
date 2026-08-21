@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/screens/admin/admin_login_screen.dart';
+import 'package:xplore_app/screens/admin/admin_portal_screen.dart';
 import 'package:xplore_app/screens/user/user_portal_screen.dart';
 import 'package:xplore_app/screens/user/register_screen.dart';
 import 'package:xplore_app/screens/head/head_portal_screen.dart';
@@ -52,7 +54,14 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
-            if (state.role == 'club') {
+            if (state.role == 'admin' || state.role == 'paymentAdmin') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AdminPortalScreen(adminRole: state.role),
+                ),
+              );
+            } else if (state.role == 'club') {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const HeadPortalScreen()),
@@ -99,111 +108,128 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.only(left: 25, right: 25),
                       child: Column(
                         children: [
-                          SizedBox(
-                            height: 60,
-                            child: TextField(
-                              controller: _emailController,
-                              cursorColor: AppColors.primary,
-                              obscureText: false,
-                              enabled: true,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: myDecoration("Official Email ID",
-                                  FontAwesomeIcons.envelope),
-                              onSubmitted: (_) => _handleStudentLogin(),
+                          TextField(
+                            controller: _emailController,
+                            style: const TextStyle(color: Colors.white),
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: myDecoration(
+                              "college email id",
+                              FontAwesomeIcons.envelope,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: myDecoration(
+                              "Password",
+                              FontAwesomeIcons.lock,
                             ),
                           ),
                           const SizedBox(height: 10),
-                          TextField(
-                            controller: _passwordController,
-                            cursorColor: AppColors.primary,
-                            obscureText: true,
-                            enabled: true,
-                            decoration:
-                                myDecoration("Password", FontAwesomeIcons.lock),
-                            onSubmitted: (_) => _handleStudentLogin(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                      child: BlocBuilder<AuthBloc, AuthState>(
-                        builder: (context, state) {
-                          final isLoading = state is AuthLoading;
-                          return ElevatedButton(
-                            onPressed: isLoading ? null : _handleStudentLogin,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
-                              minimumSize: const Size.fromHeight(65),
-                            ),
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2.5,
-                                    ),
-                                  )
-                                : const Text(
-                                    "LOGIN",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ForgotPasswordRollScreen(),
                                   ),
-                          );
-                        },
-                      ),
-                    ),
-                     Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) =>
-                                    const ForgotPasswordRollScreen()),
-                          );
-                        },
-                        child: const Text(
-                          "FORGOT PASSWORD?",
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
+                                );
+                              },
+                              child: const Text(
+                                "Forgot password?",
+                                style: TextStyle(color: AppColors.primary),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const RegisterScreen()),
-                          );
-                        },
-                        child: RichText(
-                          text: const TextSpan(
-                            text: "Don't have an account? ",
-                            style: TextStyle(color: Colors.white70),
-                            children: [
-                              TextSpan(
-                                text: "Register Now",
+                          const SizedBox(height: 15),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _handleStudentLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(40),
+                                ),
+                              ),
+                              child: const Text(
+                                "LOG IN",
                                 style: TextStyle(
-                                  color: AppColors.primary,
+                                  color: Colors.white,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Don't have an account? ",
+                                style: TextStyle(color: AppColors.textSecondary),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const RegisterScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  "Register",
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 20),
+
+                          // ── Admin Portal Navigation Button ────────────────────────
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const AdminLoginScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.admin_panel_settings_rounded,
+                                  color: AppColors.primary, size: 20),
+                              label: const Text(
+                                "ADMIN PORTAL LOGIN",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: AppColors.primary, width: 1.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(40),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -228,8 +254,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ));
   }
-
-  // Removed _showForgotPasswordDialog to use specialized screen flow
 }
 
 InputDecoration myDecoration(String hintText, IconData youricon) {
