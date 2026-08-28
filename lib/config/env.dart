@@ -5,10 +5,10 @@ class EnvConfig {
 
   static String get baseUrl {
     if (_baseUrl != null) return _baseUrl!;
-    
+
     // Default production fallback
-    _baseUrl = 'https://clubsetu-backend.onrender.com/api';
-    
+    _baseUrl = 'https://campusnode-server.onrender.com/api';
+
     try {
       final file = File('.env');
       if (file.existsSync()) {
@@ -30,7 +30,7 @@ class EnvConfig {
     } catch (_) {
       // Catch file errors or running in a web/non-file context
     }
-    
+
     return _baseUrl!;
   }
 }

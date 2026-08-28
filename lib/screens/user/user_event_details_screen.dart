@@ -12,6 +12,7 @@ import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import 'package:xplore_app/components/tag_pill.dart';
 import 'package:xplore_app/components/highlight_card.dart';
 import 'package:xplore_app/components/faq_accordion_tile.dart';
+import 'package:xplore_app/components/ticket_pass_dialog.dart';
 
 enum EventDraft { yes, no }
 
@@ -1012,20 +1013,27 @@ class _UserEventDetailsScreenState extends State<UserEventDetailsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined, size: 18, color: AppColors.textSecondary),
-                          const SizedBox(width: 6),
-                          Text(
-                            venue,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            const Icon(Icons.location_on_outlined, size: 18, color: AppColors.textSecondary),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                venue,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 10),
                       Row(
                         children: [
                           const Icon(Icons.confirmation_number_outlined, size: 18, color: Color(0xFF22C55E)),
@@ -1044,62 +1052,172 @@ class _UserEventDetailsScreenState extends State<UserEventDetailsScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // GET TICKETS / REGISTER Action Button + Calendar export button
-                  if (widget.preview == EventDraft.no)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => _handleRegistrationAction(context, currentUser),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: ev?.isRegistered == true
-                                  ? Colors.red.shade700
-                                  : Colors.white,
-                              foregroundColor: ev?.isRegistered == true
-                                  ? Colors.white
-                                  : Colors.black,
-                              elevation: 0,
-                              minimumSize: const Size.fromHeight(52),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            child: Text(
-                              ev?.isRegistered == true
-                                  ? "DEREGISTER FROM EVENT"
-                                  : "GET TICKETS",
+                  // GET TICKETS / SHOW TICKET / DEREGISTER Action Buttons + Calendar export button
+                  if (widget.preview == EventDraft.no) ...[
+                    if (ev?.isRegistered == true) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F291B),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFF22C55E)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF22C55E)),
+                            SizedBox(width: 6),
+                            Text(
+                              "REGISTERED",
                               style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 15,
+                                color: Color(0xFF22C55E),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
                                 letterSpacing: 0.5,
-                                color: ev?.isRegistered == true
-                                    ? Colors.white
-                                    : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: ElevatedButton(
+                              onPressed: () => TicketPassDialog.show(
+                                context,
+                                event: ev!,
+                                user: currentUser,
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                minimumSize: const Size.fromHeight(52),
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.confirmation_number_rounded, size: 16),
+                                  SizedBox(width: 4),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        "SHOW TICKET",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 13,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        InkWell(
-                          onTap: _showCalendarModal,
-                          borderRadius: BorderRadius.circular(26),
-                          child: Container(
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            child: const Icon(
-                              Icons.calendar_month,
-                              color: Colors.white,
-                              size: 20,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: OutlinedButton(
+                              onPressed: () => _handleRegistrationAction(context, currentUser),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.red.shade400,
+                                side: BorderSide(color: Colors.red.shade700),
+                                minimumSize: const Size.fromHeight(52),
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  "Deregister",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: _showCalendarModal,
+                            borderRadius: BorderRadius.circular(26),
+                            child: Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: const Icon(
+                                Icons.calendar_month,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => _handleRegistrationAction(context, currentUser),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                                elevation: 0,
+                                minimumSize: const Size.fromHeight(52),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: const Text(
+                                "GET TICKETS",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  letterSpacing: 0.5,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          InkWell(
+                            onTap: _showCalendarModal,
+                            borderRadius: BorderRadius.circular(26),
+                            child: Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: const Icon(
+                                Icons.calendar_month,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
 
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
@@ -1135,38 +1253,44 @@ class _UserEventDetailsScreenState extends State<UserEventDetailsScreen> {
                         ),
                       ),
                       const SizedBox(width: 14),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "ORGANIZED BY",
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "ORGANIZED BY",
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.8,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            organizedByTitle,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              letterSpacing: -0.3,
+                            const SizedBox(height: 3),
+                            Text(
+                              organizedByTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                letterSpacing: -0.3,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            organizedBySubtitle,
-                            style: const TextStyle(
-                              color: Color(0xFFEA580C),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                            const SizedBox(height: 2),
+                            Text(
+                              organizedBySubtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFEA580C),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),

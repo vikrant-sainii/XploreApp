@@ -40,15 +40,15 @@ class EventBloc extends Bloc<EventEvent, EventState> {
             }
           }
 
-          // If some events from participations aren't fully populated, cross-reference
+          // 3. Populate registered list and add all events to upcoming with proper isRegistered status
           for (var ev in allEvents) {
-            if (registeredIds.contains(ev.id)) {
+            final isReg = registeredIds.contains(ev.id);
+            if (isReg) {
               if (!registered.any((r) => r.id == ev.id)) {
                 registered.add(ev.copyWith(isRegistered: true));
               }
-            } else {
-              upcoming.add(ev);
             }
+            upcoming.add(ev.copyWith(isRegistered: isReg));
           }
         } else {
           // Not logged in or guest: all events are upcoming

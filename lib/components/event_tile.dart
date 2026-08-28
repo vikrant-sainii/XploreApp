@@ -57,6 +57,8 @@ class EventTile extends StatelessWidget {
   final String imagelocation, title, subtitle;
   final VoidCallback? onTap;
   final TrailingType type;
+  final double? width;
+  final EdgeInsetsGeometry? margin;
 
   const EventTile({
     super.key,
@@ -65,6 +67,8 @@ class EventTile extends StatelessWidget {
     required this.subtitle,
     required this.onTap,
     required this.type,
+    this.width,
+    this.margin,
   });
 
   Widget _buildImageWidget(String loc) {
@@ -109,8 +113,8 @@ class EventTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxWidth = MediaQuery.sizeOf(context).width;
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      width: 0.9 * maxWidth,
+      margin: margin ?? const EdgeInsets.symmetric(vertical: 6),
+      width: width ?? (0.9 * maxWidth),
       decoration: BoxDecoration(
         color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(24),

@@ -4,6 +4,7 @@ import 'package:xplore_app/blocs/event/event_bloc.dart';
 import 'package:xplore_app/screens/user/user_event_details_screen.dart';
 import 'package:xplore_app/config/theme.dart';
 import 'package:xplore_app/components/event_tile.dart';
+import 'package:xplore_app/components/registered_event_card.dart';
 import 'package:xplore_app/components/custom_app_bar.dart';
 
 class UserHomeScreen extends StatelessWidget {
@@ -64,6 +65,7 @@ class UserHomeScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(40),
                     color: AppColors.scaffoldBackground),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -84,69 +86,73 @@ class UserHomeScreen extends StatelessWidget {
                     SizedBox(
                       height: height * 0.02,
                     ),
-                    Container(
-                      margin: EdgeInsets.symmetric(
-                        horizontal: width * 0.05,
-                      ),
-                      child: BlocBuilder<EventBloc, EventState>(
-                        buildWhen: (previous, current) =>
-                            current is EventsLoaded ||
-                            (current is EventInitial) ||
-                            (current is EventLoading && previous is! EventsLoaded) ||
-                            (current is EventError && previous is! EventsLoaded),
-                        builder: (context, state) {
-                          if (state is EventLoading) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          } else if (state is EventError) {
+                    BlocBuilder<EventBloc, EventState>(
+                      buildWhen: (previous, current) =>
+                          current is EventsLoaded ||
+                          (current is EventInitial) ||
+                          (current is EventLoading && previous is! EventsLoaded) ||
+                          (current is EventError && previous is! EventsLoaded),
+                      builder: (context, state) {
+                        if (state is EventLoading) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (state is EventError) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                Text(state.message, style: const TextStyle(color: Colors.white70)),
+                                const SizedBox(height: 8),
+                                TextButton.icon(
+                                  onPressed: () => context.read<EventBloc>().add(FetchAllEvents()),
+                                  icon: const Icon(Icons.refresh, color: AppColors.primary, size: 16),
+                                  label: const Text("Retry", style: TextStyle(color: AppColors.primary)),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else if (state is EventsLoaded) {
+                          if (state.registeredEvents.isEmpty) {
                             return Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                children: [
-                                  Text(state.message, style: const TextStyle(color: Colors.white70)),
-                                  const SizedBox(height: 8),
-                                  TextButton.icon(
-                                    onPressed: () => context.read<EventBloc>().add(FetchAllEvents()),
-                                    icon: const Icon(Icons.refresh, color: AppColors.primary, size: 16),
-                                    label: const Text("Retry", style: TextStyle(color: AppColors.primary)),
-                                  ),
-                                ],
-                              ),
-                            );
-                          } else if (state is EventsLoaded) {
-                            if (state.registeredEvents.isEmpty) {
-                              return const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text("No registered events found.", style: TextStyle(color: Colors.white70)),
-                              );
-                            }
-                            return Column(
-                              children: state.registeredEvents.map((event) {
-                                return EventTile(
-                                  imagelocation: event.imageLocation ??
-                                      'assets/octave.png',
-                                  title: event.title,
-                                  subtitle: event.subtitle ?? '',
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => UserEventDetailsScreen(
-                                          event: event,
-                                          changeindex: changeindex,
-                                          preview: EventDraft.no,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  type: TrailingType.typeRegistered,
-                                );
-                              }).toList(),
+                              padding: EdgeInsets.symmetric(horizontal: width * 0.05, vertical: 8.0),
+                              child: const Text("No registered events found.", style: TextStyle(color: Colors.white70)),
                             );
                           }
-                          return const SizedBox.shrink();
-                        },
-                      ),
+                          return SizedBox(
+                            width: double.infinity,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: width * 0.05,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: state.registeredEvents.map((event) {
+                                  return RegisteredEventCard(
+                                    imagelocation: event.imageLocation ??
+                                        'assets/octave.png',
+                                    title: event.title,
+                                    subtitle: event.subtitle ?? '',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => UserEventDetailsScreen(
+                                            event: event,
+                                            changeindex: changeindex,
+                                            preview: EventDraft.no,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
                     ),
                     XploreTile(
                       onTap: () {
