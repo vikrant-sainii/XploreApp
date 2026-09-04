@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/admin/admin_bloc.dart';
 import 'package:xplore_app/components/admin_input_field.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class AdminClubsScreen extends StatefulWidget {
@@ -19,7 +21,8 @@ class _AdminClubsScreenState extends State<AdminClubsScreen> {
   void initState() {
     super.initState();
     final bloc = context.read<AdminBloc>();
-    if (bloc.state is! AdminDataState || (bloc.state as AdminDataState).clubs == null) {
+    if (bloc.state is! AdminDataState ||
+        (bloc.state as AdminDataState).clubs == null) {
       bloc.add(const FetchAdminClubs());
     }
   }
@@ -65,35 +68,53 @@ class _AdminClubsScreenState extends State<AdminClubsScreen> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                    icon:
+                        const Icon(Icons.close, color: AppColors.textSecondary),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              AdminInputField(controller: nameCtrl, label: 'Club Name', hint: 'e.g. GDG On Campus'),
+              AdminInputField(
+                  controller: nameCtrl,
+                  label: 'Club Name',
+                  hint: 'e.g. GDG On Campus'),
               const SizedBox(height: 14),
-              AdminInputField(controller: descCtrl, label: 'Description', hint: 'Brief description', maxLines: 3),
+              AdminInputField(
+                  controller: descCtrl,
+                  label: 'Description',
+                  hint: 'Brief description',
+                  maxLines: 3),
               const SizedBox(height: 14),
-              AdminInputField(controller: emailCtrl, label: 'Head Email', hint: 'head@college.edu', keyboardType: TextInputType.emailAddress),
+              AdminInputField(
+                  controller: emailCtrl,
+                  label: 'Head Email',
+                  hint: 'head@college.edu',
+                  keyboardType: TextInputType.emailAddress),
               const SizedBox(height: 14),
-              AdminInputField(controller: passCtrl, label: 'Head Password', hint: '••••••••', obscureText: true),
+              AdminInputField(
+                  controller: passCtrl,
+                  label: 'Head Password',
+                  hint: '••••••••',
+                  obscureText: true),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (nameCtrl.text.trim().isEmpty || emailCtrl.text.trim().isEmpty) return;
-                    context.read<AdminBloc>().add(CreateAdminClub({
-                      'clubName': nameCtrl.text.trim(),
-                      'description': descCtrl.text.trim(),
-                      'clubEmail': emailCtrl.text.trim(),
-                      'headPassword': passCtrl.text,
-                    }));
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Create Club'),
-                ),
+              AppPrimaryButton(
+                onPressed: () {
+                  if (nameCtrl.text.trim().isEmpty ||
+                      emailCtrl.text.trim().isEmpty) {
+                    return;
+                  }
+                  context.read<AdminBloc>().add(CreateAdminClub({
+                        'clubName': nameCtrl.text.trim(),
+                        'description': descCtrl.text.trim(),
+                        'clubEmail': emailCtrl.text.trim(),
+                        'headPassword': passCtrl.text,
+                      }));
+                  Navigator.pop(ctx);
+                },
+                label: 'Create Club',
+                height: 52,
+                radius: 16,
               ),
             ],
           ),
@@ -111,31 +132,19 @@ class _AdminClubsScreenState extends State<AdminClubsScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
-        label: const Text('New Club', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text('New Club',
+            style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Container(
+            child: AppTextField(
+              controller: _searchCtrl,
+              hintText: 'Search clubs…',
+              prefixIcon: Icons.search_rounded,
               height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.cardColor,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: TextField(
-                controller: _searchCtrl,
-                onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                decoration: const InputDecoration(
-                  hintText: 'Search clubs…',
-                  hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                  prefixIcon: Icon(Icons.search_rounded, color: AppColors.textSecondary, size: 20),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
+              onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
             ),
           ),
           const SizedBox(height: 12),
@@ -173,11 +182,14 @@ class _AdminClubsScreenState extends State<AdminClubsScreen> {
 
                 if (isLoading && clubs.isEmpty) {
                   return const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary));
+                      child:
+                          CircularProgressIndicator(color: AppColors.primary));
                 }
 
                 final filtered = clubs.where((c) {
-                  final name = (c['clubName'] ?? c['name'] ?? '').toString().toLowerCase();
+                  final name = (c['clubName'] ?? c['name'] ?? '')
+                      .toString()
+                      .toLowerCase();
                   return _searchQuery.isEmpty || name.contains(_searchQuery);
                 }).toList();
 
@@ -220,12 +232,14 @@ class _ClubCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = club['clubName'] ?? club['name'] ?? 'Unnamed Club';
     final logo = club['clubLogo'] ?? club['logo'] ?? '';
-    
+
     // Check memberships for club head or facultyCoordinator
     String headName = club['headName'] ?? '';
     String headEmail = club['headEmail'] ?? club['clubEmail'] ?? '';
-    
-    if (headName.isEmpty && club['memberships'] is List && (club['memberships'] as List).isNotEmpty) {
+
+    if (headName.isEmpty &&
+        club['memberships'] is List &&
+        (club['memberships'] as List).isNotEmpty) {
       final headStudent = (club['memberships'] as List)[0]['student'];
       if (headStudent != null) {
         headName = headStudent['name'] ?? '';
@@ -237,7 +251,11 @@ class _ClubCard extends StatelessWidget {
       headEmail = club['facultyCoordinator']['email'] ?? headEmail;
     }
 
-    final memberCount = club['memberCount'] ?? club['totalMembers'] ?? (club['memberships'] is List ? (club['memberships'] as List).length : 0);
+    final memberCount = club['memberCount'] ??
+        club['totalMembers'] ??
+        (club['memberships'] is List
+            ? (club['memberships'] as List).length
+            : 0);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

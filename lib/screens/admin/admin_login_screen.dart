@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class AdminLoginScreen extends StatefulWidget {
@@ -105,84 +108,43 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                       const SizedBox(height: 40),
 
                       // ── Email Field ───────────────────────────────────────
-                      _buildField(
+                      AppTextField(
                         controller: _emailCtrl,
-                        hint: 'Admin email',
-                        icon: Icons.mail_outline_rounded,
+                        hintText: 'Admin email',
+                        prefixIcon: FontAwesomeIcons.envelope,
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 14),
 
                       // ── Password Field ────────────────────────────────────
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.cardColor,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: TextField(
-                          controller: _passCtrl,
-                          obscureText: _obscurePass,
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 15),
-                          textInputAction: TextInputAction.done,
-                          onSubmitted: (_) => _submit(context),
-                          decoration: InputDecoration(
-                            hintText: 'Password',
-                            hintStyle: const TextStyle(
-                                color: AppColors.textSecondary, fontSize: 15),
-                            prefixIcon: const Icon(Icons.lock_outline_rounded,
-                                color: AppColors.textSecondary, size: 20),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePass
-                                    ? Icons.visibility_off_rounded
-                                    : Icons.visibility_rounded,
-                                color: AppColors.textSecondary,
-                                size: 20,
-                              ),
-                              onPressed: () =>
-                                  setState(() => _obscurePass = !_obscurePass),
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 16),
+                      AppTextField(
+                        controller: _passCtrl,
+                        hintText: 'Password',
+                        prefixIcon: FontAwesomeIcons.lock,
+                        obscureText: _obscurePass,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _submit(context),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePass
+                                ? Icons.visibility_off_rounded
+                                : Icons.visibility_rounded,
+                            color: AppColors.primary,
+                            size: 20,
                           ),
+                          onPressed: () =>
+                              setState(() => _obscurePass = !_obscurePass),
                         ),
                       ),
                       const SizedBox(height: 28),
 
                       // ── Login Button ──────────────────────────────────────
-                      SizedBox(
-                        width: double.infinity,
+                      AppPrimaryButton(
+                        onPressed: isLoading ? null : () => _submit(context),
+                        label: 'Sign In',
+                        loading: isLoading,
                         height: 52,
-                        child: ElevatedButton(
-                          onPressed: isLoading ? null : () => _submit(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            disabledBackgroundColor:
-                                AppColors.primary.withValues(alpha: 0.5),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                          ),
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Sign In',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                        ),
+                        radius: 16,
                       ),
                       const SizedBox(height: 32),
 
@@ -196,7 +158,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                           Text(
                             'Unauthorized access is monitored',
                             style: TextStyle(
-                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                              color: AppColors.textSecondary
+                                  .withValues(alpha: 0.7),
                               fontSize: 12,
                             ),
                           ),
@@ -209,36 +172,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        style: const TextStyle(color: Colors.white, fontSize: 15),
-        textInputAction: TextInputAction.next,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(
-              color: AppColors.textSecondary, fontSize: 15),
-          prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        ),
       ),
     );
   }

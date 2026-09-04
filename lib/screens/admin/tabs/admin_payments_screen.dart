@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/admin/admin_bloc.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class AdminPaymentsScreen extends StatefulWidget {
@@ -19,7 +20,8 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
   void initState() {
     super.initState();
     final bloc = context.read<AdminBloc>();
-    if (bloc.state is! AdminDataState || (bloc.state as AdminDataState).payments == null) {
+    if (bloc.state is! AdminDataState ||
+        (bloc.state as AdminDataState).payments == null) {
       bloc.add(const FetchAdminPayments());
     }
   }
@@ -38,25 +40,12 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Container(
+            child: AppTextField(
+              controller: _searchCtrl,
+              hintText: 'Search by name or UTR…',
+              prefixIcon: Icons.search_rounded,
               height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.cardColor,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: TextField(
-                controller: _searchCtrl,
-                onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                decoration: const InputDecoration(
-                  hintText: 'Search by name or UTR…',
-                  hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                  prefixIcon: Icon(Icons.search_rounded, color: AppColors.textSecondary, size: 20),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
+              onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
             ),
           ),
           const SizedBox(height: 10),
@@ -93,19 +82,29 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
 
                 if (isLoading && payments.isEmpty) {
                   return const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary));
+                      child:
+                          CircularProgressIndicator(color: AppColors.primary));
                 }
 
                 final filtered = payments.where((p) {
-                  final name = (p['studentName'] ?? p['name'] ?? '').toString().toLowerCase();
-                  final utr = (p['transactionId'] ?? p['utrNumber'] ?? p['utr'] ?? '').toString().toLowerCase();
-                  final status = (p['paymentStatus'] ?? p['status'] ?? 'pending').toString().toLowerCase();
+                  final name = (p['studentName'] ?? p['name'] ?? '')
+                      .toString()
+                      .toLowerCase();
+                  final utr =
+                      (p['transactionId'] ?? p['utrNumber'] ?? p['utr'] ?? '')
+                          .toString()
+                          .toLowerCase();
+                  final status =
+                      (p['paymentStatus'] ?? p['status'] ?? 'pending')
+                          .toString()
+                          .toLowerCase();
                   final matchesSearch = _searchQuery.isEmpty ||
                       name.contains(_searchQuery) ||
                       utr.contains(_searchQuery);
                   final matchesStatus = _statusFilter == 'all' ||
                       status == _statusFilter ||
-                      (_statusFilter == 'approved' && (status == 'verified' || status == 'success'));
+                      (_statusFilter == 'approved' &&
+                          (status == 'verified' || status == 'success'));
                   return matchesSearch && matchesStatus;
                 }).toList();
 
@@ -130,19 +129,22 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
                             ),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.3)),
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               _SummaryItem(
                                 label: 'Total',
-                                value: '${summary['totalCount'] ?? summary['total'] ?? 0}',
+                                value:
+                                    '${summary['totalCount'] ?? summary['total'] ?? 0}',
                                 color: Colors.white,
                               ),
                               _SummaryItem(
                                 label: 'Verified',
-                                value: '${summary['verifiedCount'] ?? summary['approvedCount'] ?? 0}',
+                                value:
+                                    '${summary['verifiedCount'] ?? summary['approvedCount'] ?? 0}',
                                 color: const Color(0xFF10B981),
                               ),
                               _SummaryItem(
@@ -237,7 +239,9 @@ class _PaymentCard extends StatelessWidget {
   const _PaymentCard({required this.payment});
 
   Color get _statusColor {
-    final status = (payment['paymentStatus'] ?? payment['status'] ?? '').toString().toLowerCase();
+    final status = (payment['paymentStatus'] ?? payment['status'] ?? '')
+        .toString()
+        .toLowerCase();
     switch (status) {
       case 'verified':
       case 'approved':
@@ -254,9 +258,13 @@ class _PaymentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = payment['studentName'] ?? payment['name'] ?? 'Unknown';
     final event = payment['eventName'] ?? payment['event']?['title'] ?? '';
-    final utr = payment['transactionId'] ?? payment['utrNumber'] ?? payment['utr'] ?? '—';
+    final utr = payment['transactionId'] ??
+        payment['utrNumber'] ??
+        payment['utr'] ??
+        '—';
     final amount = payment['amountPaid'] ?? payment['amount'] ?? 0;
-    final status = (payment['paymentStatus'] ?? payment['status'] ?? 'pending').toString();
+    final status =
+        (payment['paymentStatus'] ?? payment['status'] ?? 'pending').toString();
     final rollNo = payment['studentRollNo'] ?? payment['rollNo'] ?? '';
 
     return Container(
@@ -294,7 +302,8 @@ class _PaymentCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: _statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),

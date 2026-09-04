@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:xplore_app/blocs/notification/notification_bloc.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class HeadSendNotificationScreen extends StatefulWidget {
@@ -8,10 +11,12 @@ class HeadSendNotificationScreen extends StatefulWidget {
   const HeadSendNotificationScreen({super.key, this.eventId});
 
   @override
-  State<HeadSendNotificationScreen> createState() => _HeadSendNotificationScreenState();
+  State<HeadSendNotificationScreen> createState() =>
+      _HeadSendNotificationScreenState();
 }
 
-class _HeadSendNotificationScreenState extends State<HeadSendNotificationScreen> {
+class _HeadSendNotificationScreenState
+    extends State<HeadSendNotificationScreen> {
   final _titleController = TextEditingController();
   final _messageController = TextEditingController();
   String _targetType = 'all'; // 'all' or 'event'
@@ -51,7 +56,8 @@ class _HeadSendNotificationScreenState extends State<HeadSendNotificationScreen>
         backgroundColor: Colors.transparent,
         title: const Text(
           "BROADCAST ANNOUNCEMENT",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -62,12 +68,15 @@ class _HeadSendNotificationScreenState extends State<HeadSendNotificationScreen>
         listener: (context, state) {
           if (state is NotificationSendSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Announcement sent successfully!"), backgroundColor: Colors.green),
+              const SnackBar(
+                  content: Text("Announcement sent successfully!"),
+                  backgroundColor: Colors.green),
             );
             Navigator.pop(context);
           } else if (state is NotificationError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.red),
             );
           }
         },
@@ -78,7 +87,9 @@ class _HeadSendNotificationScreenState extends State<HeadSendNotificationScreen>
               children: [
                 Expanded(
                   child: ChoiceChip(
-                    label: const Center(child: Text("ALL STUDENTS", style: TextStyle(fontWeight: FontWeight.bold))),
+                    label: const Center(
+                        child: Text("ALL STUDENTS",
+                            style: TextStyle(fontWeight: FontWeight.bold))),
                     selected: _targetType == 'all',
                     selectedColor: AppColors.primary,
                     backgroundColor: AppColors.cardColor,
@@ -90,7 +101,9 @@ class _HeadSendNotificationScreenState extends State<HeadSendNotificationScreen>
                 const SizedBox(width: 12),
                 Expanded(
                   child: ChoiceChip(
-                    label: const Center(child: Text("EVENT PARTICIPANTS", style: TextStyle(fontWeight: FontWeight.bold))),
+                    label: const Center(
+                        child: Text("EVENT PARTICIPANTS",
+                            style: TextStyle(fontWeight: FontWeight.bold))),
                     selected: _targetType == 'event',
                     selectedColor: AppColors.primary,
                     backgroundColor: AppColors.cardColor,
@@ -102,53 +115,35 @@ class _HeadSendNotificationScreenState extends State<HeadSendNotificationScreen>
               ],
             ),
             const SizedBox(height: 20),
-
-            TextField(
+            AppTextField(
               controller: _titleController,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration("Announcement Heading"),
+              hintText: "Announcement Heading",
+              prefixIcon: FontAwesomeIcons.heading,
             ),
             const SizedBox(height: 14),
-
-            TextField(
+            AppTextField(
               controller: _messageController,
+              hintText: "Message Body...",
+              prefixIcon: FontAwesomeIcons.message,
               maxLines: 5,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration("Message Body..."),
+              height: 150,
             ),
             const SizedBox(height: 30),
-
             BlocBuilder<NotificationBloc, NotificationState>(
               builder: (context, state) {
                 final isLoading = state is NotificationLoading;
-                return ElevatedButton(
+                return AppPrimaryButton(
                   onPressed: isLoading ? null : _handleSend,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    minimumSize: const Size.fromHeight(55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  ),
-                  child: isLoading
-                      ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                      : const Text("SEND ANNOUNCEMENT", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  label: "SEND ANNOUNCEMENT",
+                  loading: isLoading,
+                  height: 55,
+                  radius: 30,
                 );
               },
             ),
           ],
         ),
       ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-      filled: true,
-      fillColor: AppColors.cardColor,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: AppColors.border)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: AppColors.border)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: AppColors.primary)),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/admin/admin_bloc.dart';
 import 'package:xplore_app/components/admin_input_field.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class AdminBroadcastsScreen extends StatefulWidget {
@@ -16,7 +17,8 @@ class _AdminBroadcastsScreenState extends State<AdminBroadcastsScreen> {
   void initState() {
     super.initState();
     final bloc = context.read<AdminBloc>();
-    if (bloc.state is! AdminDataState || (bloc.state as AdminDataState).broadcasts == null) {
+    if (bloc.state is! AdminDataState ||
+        (bloc.state as AdminDataState).broadcasts == null) {
       bloc.add(const FetchAdminBroadcasts());
     }
   }
@@ -35,7 +37,8 @@ class _AdminBroadcastsScreenState extends State<AdminBroadcastsScreen> {
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
             child: Column(
@@ -64,7 +67,8 @@ class _AdminBroadcastsScreenState extends State<AdminBroadcastsScreen> {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                      icon: const Icon(Icons.close,
+                          color: AppColors.textSecondary),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
@@ -100,7 +104,10 @@ class _AdminBroadcastsScreenState extends State<AdminBroadcastsScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                AdminInputField(controller: titleCtrl, label: 'Title', hint: 'Broadcast title…'),
+                AdminInputField(
+                    controller: titleCtrl,
+                    label: 'Title',
+                    hint: 'Broadcast title…'),
                 const SizedBox(height: 14),
                 AdminInputField(
                     controller: messageCtrl,
@@ -108,24 +115,22 @@ class _AdminBroadcastsScreenState extends State<AdminBroadcastsScreen> {
                     hint: 'Write your broadcast message…',
                     maxLines: 4),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      if (titleCtrl.text.trim().isEmpty ||
-                          messageCtrl.text.trim().isEmpty) {
-                        return;
-                      }
-                      context.read<AdminBloc>().add(SendAdminBroadcast({
-                        'targetType': targetType,
-                        'title': titleCtrl.text.trim(),
-                        'message': messageCtrl.text.trim(),
-                      }));
-                      Navigator.pop(ctx);
-                    },
-                    icon: const Icon(Icons.send_rounded, size: 18),
-                    label: const Text('Send Broadcast'),
-                  ),
+                AppPrimaryButton(
+                  onPressed: () {
+                    if (titleCtrl.text.trim().isEmpty ||
+                        messageCtrl.text.trim().isEmpty) {
+                      return;
+                    }
+                    context.read<AdminBloc>().add(SendAdminBroadcast({
+                          'targetType': targetType,
+                          'title': titleCtrl.text.trim(),
+                          'message': messageCtrl.text.trim(),
+                        }));
+                    Navigator.pop(ctx);
+                  },
+                  label: 'Send Broadcast',
+                  height: 52,
+                  radius: 16,
                 ),
               ],
             ),
@@ -165,7 +170,8 @@ class _AdminBroadcastsScreenState extends State<AdminBroadcastsScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.campaign_rounded),
-        label: const Text('New Broadcast', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text('New Broadcast',
+            style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: BlocConsumer<AdminBloc, AdminState>(
         listener: (context, state) {
@@ -325,7 +331,8 @@ class _BroadcastCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: target == 'ALL_STUDENTS'
                         ? const Color(0xFF6366F1).withValues(alpha: 0.12)

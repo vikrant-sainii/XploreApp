@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/screens/admin/admin_login_screen.dart';
 import 'package:xplore_app/screens/admin/admin_portal_screen.dart';
 import 'package:xplore_app/screens/user/user_portal_screen.dart';
@@ -99,7 +101,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           "LOGIN",
                           selectionColor: AppColors.primary,
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 30, color: Colors.white),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                              color: Colors.white),
                         ),
                       ],
                     ),
@@ -108,24 +112,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.only(left: 25, right: 25),
                       child: Column(
                         children: [
-                          TextField(
+                          AppTextField(
                             controller: _emailController,
-                            style: const TextStyle(color: Colors.white),
+                            hintText: "college email id",
+                            prefixIcon: FontAwesomeIcons.envelope,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: myDecoration(
-                              "college email id",
-                              FontAwesomeIcons.envelope,
-                            ),
                           ),
                           const SizedBox(height: 20),
-                          TextField(
+                          AppTextField(
                             controller: _passwordController,
+                            hintText: "Password",
+                            prefixIcon: FontAwesomeIcons.lock,
                             obscureText: true,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: myDecoration(
-                              "Password",
-                              FontAwesomeIcons.lock,
-                            ),
                           ),
                           const SizedBox(height: 10),
                           Align(
@@ -135,7 +133,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const ForgotPasswordRollScreen(),
+                                    builder: (context) =>
+                                        const ForgotPasswordRollScreen(),
                                   ),
                                 );
                               },
@@ -146,26 +145,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 15),
-                          SizedBox(
-                            width: double.infinity,
+                          AppPrimaryButton(
+                            onPressed: _handleStudentLogin,
+                            label: "LOG IN",
                             height: 50,
-                            child: ElevatedButton(
-                              onPressed: _handleStudentLogin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(40),
-                                ),
-                              ),
-                              child: const Text(
-                                "LOG IN",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
+                            radius: 40,
                           ),
                           const SizedBox(height: 20),
                           Row(
@@ -173,14 +157,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               const Text(
                                 "Don't have an account? ",
-                                style: TextStyle(color: AppColors.textSecondary),
+                                style:
+                                    TextStyle(color: AppColors.textSecondary),
                               ),
                               GestureDetector(
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const RegisterScreen(),
+                                      builder: (context) =>
+                                          const RegisterScreen(),
                                     ),
                                   );
                                 },
@@ -206,12 +192,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const AdminLoginScreen(),
+                                    builder: (context) =>
+                                        const AdminLoginScreen(),
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.admin_panel_settings_rounded,
-                                  color: AppColors.primary, size: 20),
+                              icon: const Icon(
+                                  Icons.admin_panel_settings_rounded,
+                                  color: AppColors.primary,
+                                  size: 20),
                               label: const Text(
                                 "ADMIN PORTAL LOGIN",
                                 style: TextStyle(
@@ -222,7 +211,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: AppColors.primary, width: 1.5),
+                                side: const BorderSide(
+                                    color: AppColors.primary, width: 1.5),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(40),
                                 ),
@@ -254,38 +244,4 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ));
   }
-}
-
-InputDecoration myDecoration(String hintText, IconData youricon) {
-  return InputDecoration(
-    contentPadding: const EdgeInsets.symmetric(vertical: 20),
-    prefixIcon: Container(
-      margin: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.15),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        size: 20,
-        youricon,
-        color: AppColors.primary,
-      ),
-    ),
-    filled: true,
-    fillColor: AppColors.cardColor,
-    hintText: hintText,
-    hintStyle: const TextStyle(color: AppColors.textSecondary),
-    enabledBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: AppColors.border),
-    ),
-    focusedBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-    ),
-    disabledBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: AppColors.border),
-    ),
-  );
 }

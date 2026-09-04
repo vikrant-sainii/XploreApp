@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+import 'package:xplore_app/components/app_dropdown_field.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/screens/user/login_screen.dart';
 import 'package:xplore_app/screens/user/user_portal_screen.dart';
 import 'package:xplore_app/config/theme.dart';
@@ -176,7 +179,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           "REGISTER",
                           selectionColor: AppColors.primary,
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 30, color: Colors.white),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                              color: Colors.white),
                         ),
                       ],
                     ),
@@ -186,72 +191,61 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         children: [
                           // 1. Full Name
-                          SizedBox(
-                            height: 55,
-                            child: TextField(
-                              controller: _nameController,
-                              cursorColor: AppColors.primary,
-                              decoration: myDecoration(
-                                  "Full Name", FontAwesomeIcons.user),
-                            ),
+                          AppTextField(
+                            controller: _nameController,
+                            hintText: "Full Name",
+                            prefixIcon: FontAwesomeIcons.user,
                           ),
                           const SizedBox(height: 8),
 
                           // 2. Roll Number
-                          SizedBox(
-                            height: 55,
-                            child: TextField(
-                              controller: _rollNoController,
-                              cursorColor: AppColors.primary,
-                              decoration: myDecoration(
-                                  "Roll Number", FontAwesomeIcons.idCard),
-                            ),
+                          AppTextField(
+                            controller: _rollNoController,
+                            hintText: "Roll Number",
+                            prefixIcon: FontAwesomeIcons.idCard,
                           ),
                           const SizedBox(height: 8),
 
                           // 3. Select Program (BTech, MTech, Other)
-                          SizedBox(
-                            height: 55,
-                            child: DropdownButtonFormField<String>(
-                              value: _selectedProgram,
-                              dropdownColor: const Color(0xFF1E202B),
-                              borderRadius: BorderRadius.circular(16),
-                              menuMaxHeight: 280,
-                              elevation: 12,
-                              isExpanded: true,
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary, size: 24),
-                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                              decoration: myDecoration("Select Program", FontAwesomeIcons.graduationCap),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: "BTECH",
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text("B.Tech", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ),
+                          AppDropdownField<String>(
+                            value: _selectedProgram,
+                            hintText: "Select Program",
+                            prefixIcon: FontAwesomeIcons.graduationCap,
+                            items: const [
+                              DropdownMenuItem(
+                                value: "BTECH",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("B.Tech",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 14)),
                                 ),
-                                DropdownMenuItem(
-                                  value: "MTECH",
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text("M.Tech", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ),
+                              ),
+                              DropdownMenuItem(
+                                value: "MTECH",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("M.Tech",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 14)),
                                 ),
-                                DropdownMenuItem(
-                                  value: "OTHER",
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text("Other", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ),
+                              ),
+                              DropdownMenuItem(
+                                value: "OTHER",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("Other",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 14)),
                                 ),
-                              ],
-                              onChanged: (val) {
-                                setState(() {
-                                  _selectedProgram = val;
-                                  _selectedBranch = null;
-                                });
-                              },
-                            ),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedProgram = val;
+                                _selectedBranch = null;
+                              });
+                            },
                           ),
                           const SizedBox(height: 8),
 
@@ -259,25 +253,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           SizedBox(
                             height: 55,
                             child: _selectedProgram == 'OTHER'
-                                ? TextField(
-                                    key: const ValueKey("custom_branch"),
+                                ? AppTextField(
                                     controller: _customBranchController,
-                                    cursorColor: AppColors.primary,
-                                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                                    decoration: myDecoration(
-                                        "Enter Branch Name", FontAwesomeIcons.codeBranch),
+                                    hintText: "Enter Branch Name",
+                                    prefixIcon: FontAwesomeIcons.codeBranch,
                                   )
-                                : DropdownButtonFormField<String>(
-                                    key: ValueKey("branch_select_${_selectedProgram ?? 'none'}"),
+                                : AppDropdownField<String>(
                                     value: _selectedBranch,
-                                    dropdownColor: const Color(0xFF1E202B),
-                                    borderRadius: BorderRadius.circular(16),
-                                    menuMaxHeight: 280,
-                                    elevation: 12,
-                                    isExpanded: true,
-                                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary, size: 24),
-                                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                                    decoration: myDecoration("Select Branch", FontAwesomeIcons.codeBranch),
+                                    hintText: "Select Branch",
+                                    prefixIcon: FontAwesomeIcons.codeBranch,
                                     items: _selectedProgram == null
                                         ? null
                                         : (_selectedProgram == 'MTECH'
@@ -286,11 +270,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             .map((b) => DropdownMenuItem(
                                                   value: b['code'],
                                                   child: Padding(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 4),
                                                     child: Text(
                                                       b['name']!,
-                                                      overflow: TextOverflow.ellipsis,
-                                                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 14),
                                                     ),
                                                   ),
                                                 ))
@@ -307,95 +296,90 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 8),
 
                           // 5. Passout Year Selection
-                          SizedBox(
-                            height: 55,
-                            child: DropdownButtonFormField<String>(
-                              value: _selectedYear,
-                              dropdownColor: const Color(0xFF1E202B),
-                              borderRadius: BorderRadius.circular(16),
-                              menuMaxHeight: 280,
-                              elevation: 12,
-                              isExpanded: true,
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary, size: 24),
-                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                              decoration: myDecoration("Select Passout Year", FontAwesomeIcons.calendar),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: "2025",
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text("2025", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ),
+                          AppDropdownField<String>(
+                            value: _selectedYear,
+                            hintText: "Select Passout Year",
+                            prefixIcon: FontAwesomeIcons.calendar,
+                            items: const [
+                              DropdownMenuItem(
+                                value: "2025",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("2025",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 14)),
                                 ),
-                                DropdownMenuItem(
-                                  value: "2026",
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text("2026", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ),
+                              ),
+                              DropdownMenuItem(
+                                value: "2026",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("2026",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 14)),
                                 ),
-                                DropdownMenuItem(
-                                  value: "2027",
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text("2027", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ),
+                              ),
+                              DropdownMenuItem(
+                                value: "2027",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("2027",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 14)),
                                 ),
-                                DropdownMenuItem(
-                                  value: "2028",
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text("2028", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ),
+                              ),
+                              DropdownMenuItem(
+                                value: "2028",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("2028",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 14)),
                                 ),
-                                DropdownMenuItem(
-                                  value: "2029",
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text("2029", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ),
+                              ),
+                              DropdownMenuItem(
+                                value: "2029",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("2029",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 14)),
                                 ),
-                                DropdownMenuItem(
-                                  value: "2030",
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text("2030", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ),
+                              ),
+                              DropdownMenuItem(
+                                value: "2030",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text("2030",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 14)),
                                 ),
-                              ],
-                              onChanged: (val) {
-                                setState(() {
-                                  _selectedYear = val;
-                                });
-                              },
-                            ),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedYear = val;
+                              });
+                            },
                           ),
                           const SizedBox(height: 8),
 
                           // 5. Email ID
-                          SizedBox(
-                            height: 55,
-                            child: TextField(
-                              controller: _emailController,
-                              cursorColor: AppColors.primary,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: myDecoration("Official Email ID",
-                                  FontAwesomeIcons.envelope),
-                            ),
+                          AppTextField(
+                            controller: _emailController,
+                            hintText: "Official Email ID",
+                            prefixIcon: FontAwesomeIcons.envelope,
+                            keyboardType: TextInputType.emailAddress,
                           ),
                           const SizedBox(height: 8),
 
                           // 6. Password
-                          SizedBox(
-                            height: 55,
-                            child: TextField(
-                              controller: _passwordController,
-                              cursorColor: AppColors.primary,
-                              obscureText: true,
-                              decoration:
-                                  myDecoration("Password", FontAwesomeIcons.lock),
-                              onSubmitted: (_) => _handleRegister(),
-                            ),
+                          AppTextField(
+                            controller: _passwordController,
+                            hintText: "Password",
+                            prefixIcon: FontAwesomeIcons.lock,
+                            obscureText: true,
+                            onSubmitted: (_) => _handleRegister(),
                           ),
                         ],
                       ),
@@ -405,31 +389,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 25),
                       child: BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
-                          final isLoading = state is AuthLoading;
-                          return ElevatedButton(
-                            onPressed: isLoading ? null : _handleRegister,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
-                              minimumSize: const Size.fromHeight(60),
-                            ),
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2.5,
-                                    ),
-                                  )
-                                : const Text(
-                                    "REGISTER",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
+                          return AppPrimaryButton(
+                            onPressed: _handleRegister,
+                            label: "REGISTER",
+                            loading: state is AuthLoading,
+                            height: 60,
                           );
                         },
                       ),
@@ -460,38 +424,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ));
   }
-}
-
-InputDecoration myDecoration(String hintText, IconData youricon) {
-  return InputDecoration(
-    contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-    prefixIcon: Container(
-      margin: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.15),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        size: 18,
-        youricon,
-        color: AppColors.primary,
-      ),
-    ),
-    filled: true,
-    fillColor: AppColors.cardColor,
-    hintText: hintText,
-    hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-    enabledBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: AppColors.border),
-    ),
-    focusedBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-    ),
-    disabledBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: AppColors.border),
-    ),
-  );
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/admin/admin_bloc.dart';
 import 'package:xplore_app/components/admin_input_field.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class AdminVenuesScreen extends StatefulWidget {
@@ -16,17 +17,21 @@ class _AdminVenuesScreenState extends State<AdminVenuesScreen> {
   void initState() {
     super.initState();
     final bloc = context.read<AdminBloc>();
-    if (bloc.state is! AdminDataState || (bloc.state as AdminDataState).venues == null) {
+    if (bloc.state is! AdminDataState ||
+        (bloc.state as AdminDataState).venues == null) {
       bloc.add(const FetchAdminVenues());
     }
   }
 
-  void _showAddVenueSheet(BuildContext context, {Map<String, dynamic>? existing}) {
+  void _showAddVenueSheet(BuildContext context,
+      {Map<String, dynamic>? existing}) {
     final nameCtrl = TextEditingController(text: existing?['name'] ?? '');
-    final locationCtrl = TextEditingController(text: existing?['location'] ?? '');
-    final capacityCtrl = TextEditingController(
-        text: existing?['capacity']?.toString() ?? '');
-    final descCtrl = TextEditingController(text: existing?['description'] ?? '');
+    final locationCtrl =
+        TextEditingController(text: existing?['location'] ?? '');
+    final capacityCtrl =
+        TextEditingController(text: existing?['capacity']?.toString() ?? '');
+    final descCtrl =
+        TextEditingController(text: existing?['description'] ?? '');
     final isEdit = existing != null;
 
     showModalBottomSheet(
@@ -55,15 +60,22 @@ class _AdminVenuesScreenState extends State<AdminVenuesScreen> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                    icon:
+                        const Icon(Icons.close, color: AppColors.textSecondary),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              AdminInputField(controller: nameCtrl, label: 'Venue Name', hint: 'e.g. Auditorium'),
+              AdminInputField(
+                  controller: nameCtrl,
+                  label: 'Venue Name',
+                  hint: 'e.g. Auditorium'),
               const SizedBox(height: 14),
-              AdminInputField(controller: locationCtrl, label: 'Location / Block', hint: 'e.g. Block A'),
+              AdminInputField(
+                  controller: locationCtrl,
+                  label: 'Location / Block',
+                  hint: 'e.g. Block A'),
               const SizedBox(height: 14),
               AdminInputField(
                 controller: capacityCtrl,
@@ -78,29 +90,28 @@ class _AdminVenuesScreenState extends State<AdminVenuesScreen> {
                   hint: 'Brief description…',
                   maxLines: 2),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (nameCtrl.text.trim().isEmpty) return;
-                    final data = {
-                      'name': nameCtrl.text.trim(),
-                      'location': locationCtrl.text.trim(),
-                      'capacity': int.tryParse(capacityCtrl.text) ?? 0,
-                      'description': descCtrl.text.trim(),
-                    };
-                    if (existing != null) {
-                      final id = existing['_id'] ?? existing['id'] ?? '';
-                      context
-                          .read<AdminBloc>()
-                          .add(UpdateAdminVenue(id.toString(), data));
-                    } else {
-                      context.read<AdminBloc>().add(CreateAdminVenue(data));
-                    }
-                    Navigator.pop(ctx);
-                  },
-                  child: Text(isEdit ? 'Update Venue' : 'Add Venue'),
-                ),
+              AppPrimaryButton(
+                onPressed: () {
+                  if (nameCtrl.text.trim().isEmpty) return;
+                  final data = {
+                    'name': nameCtrl.text.trim(),
+                    'location': locationCtrl.text.trim(),
+                    'capacity': int.tryParse(capacityCtrl.text) ?? 0,
+                    'description': descCtrl.text.trim(),
+                  };
+                  if (existing != null) {
+                    final id = existing['_id'] ?? existing['id'] ?? '';
+                    context
+                        .read<AdminBloc>()
+                        .add(UpdateAdminVenue(id.toString(), data));
+                  } else {
+                    context.read<AdminBloc>().add(CreateAdminVenue(data));
+                  }
+                  Navigator.pop(ctx);
+                },
+                label: isEdit ? 'Update Venue' : 'Add Venue',
+                height: 52,
+                radius: 16,
               ),
             ],
           ),
@@ -139,7 +150,8 @@ class _AdminVenuesScreenState extends State<AdminVenuesScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_location_alt_rounded),
-        label: const Text('Add Venue', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text('Add Venue',
+            style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: BlocConsumer<AdminBloc, AdminState>(
         listener: (context, state) {
@@ -215,22 +227,28 @@ class _AdminVenuesScreenState extends State<AdminVenuesScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20)),
                         title: const Text('Delete Venue',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
                         content: Text(
                           'Delete "${venue['name']}"? This cannot be undone.',
-                          style: const TextStyle(color: AppColors.textSecondary),
+                          style:
+                              const TextStyle(color: AppColors.textSecondary),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx),
                             child: const Text('Cancel',
-                                style: TextStyle(color: AppColors.textSecondary)),
+                                style:
+                                    TextStyle(color: AppColors.textSecondary)),
                           ),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pop(ctx);
                               final id = venue['_id'] ?? venue['id'] ?? '';
-                              context.read<AdminBloc>().add(DeleteAdminVenue(id.toString()));
+                              context
+                                  .read<AdminBloc>()
+                                  .add(DeleteAdminVenue(id.toString()));
                             },
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red.shade700),
@@ -325,7 +343,8 @@ class _VenueCard extends StatelessWidget {
                       value: 'edit',
                       child: Row(
                         children: [
-                          Icon(Icons.edit_rounded, size: 16, color: Colors.white),
+                          Icon(Icons.edit_rounded,
+                              size: 16, color: Colors.white),
                           SizedBox(width: 8),
                           Text('Edit', style: TextStyle(color: Colors.white)),
                         ],

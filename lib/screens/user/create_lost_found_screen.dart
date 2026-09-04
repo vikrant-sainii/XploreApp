@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/lost_found/lost_found_bloc.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class CreateLostFoundScreen extends StatefulWidget {
@@ -41,8 +43,12 @@ class _CreateLostFoundScreenState extends State<CreateLostFoundScreen> {
           title: title,
           description: description,
           type: _type,
-          imageUrl: _imageUrlController.text.trim().isNotEmpty ? _imageUrlController.text.trim() : null,
-          whatsapp: _whatsappController.text.trim().isNotEmpty ? _whatsappController.text.trim() : null,
+          imageUrl: _imageUrlController.text.trim().isNotEmpty
+              ? _imageUrlController.text.trim()
+              : null,
+          whatsapp: _whatsappController.text.trim().isNotEmpty
+              ? _whatsappController.text.trim()
+              : null,
         ));
   }
 
@@ -55,7 +61,8 @@ class _CreateLostFoundScreenState extends State<CreateLostFoundScreen> {
         backgroundColor: Colors.transparent,
         title: const Text(
           "POST LOST/FOUND ITEM",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -66,12 +73,14 @@ class _CreateLostFoundScreenState extends State<CreateLostFoundScreen> {
         listener: (context, state) {
           if (state is LostFoundPostCreated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.green),
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.green),
             );
             Navigator.pop(context, true);
           } else if (state is LostFoundError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.red),
             );
           }
         },
@@ -83,7 +92,9 @@ class _CreateLostFoundScreenState extends State<CreateLostFoundScreen> {
               children: [
                 Expanded(
                   child: ChoiceChip(
-                    label: const Center(child: Text("LOST ITEM", style: TextStyle(fontWeight: FontWeight.bold))),
+                    label: const Center(
+                        child: Text("LOST ITEM",
+                            style: TextStyle(fontWeight: FontWeight.bold))),
                     selected: _type == 'Lost',
                     selectedColor: Colors.red[700],
                     backgroundColor: AppColors.cardColor,
@@ -95,7 +106,9 @@ class _CreateLostFoundScreenState extends State<CreateLostFoundScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ChoiceChip(
-                    label: const Center(child: Text("FOUND ITEM", style: TextStyle(fontWeight: FontWeight.bold))),
+                    label: const Center(
+                        child: Text("FOUND ITEM",
+                            style: TextStyle(fontWeight: FontWeight.bold))),
                     selected: _type == 'Found',
                     selectedColor: Colors.green[700],
                     backgroundColor: AppColors.cardColor,
@@ -108,67 +121,52 @@ class _CreateLostFoundScreenState extends State<CreateLostFoundScreen> {
             ),
             const SizedBox(height: 20),
 
-            TextField(
+            AppTextField(
               controller: _titleController,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration("Title (e.g. Lost HP Laptop Bag, Found Keys)"),
+              hintText: "Title (e.g. Lost HP Laptop Bag, Found Keys)",
+              prefixIcon: Icons.title_rounded,
             ),
             const SizedBox(height: 14),
 
-            TextField(
+            AppTextField(
               controller: _descriptionController,
+              hintText: "Detailed Description (where, when, color, marks...)",
+              prefixIcon: Icons.description_outlined,
               maxLines: 4,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration("Detailed Description (where, when, color, marks...)"),
+              height: 120,
             ),
             const SizedBox(height: 14),
 
-            TextField(
+            AppTextField(
               controller: _imageUrlController,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration("Image URL (Optional)"),
+              hintText: "Image URL (Optional)",
+              prefixIcon: Icons.link_outlined,
             ),
             const SizedBox(height: 14),
 
-            TextField(
+            AppTextField(
               controller: _whatsappController,
+              hintText: "WhatsApp Number (e.g. +919876543210)",
+              prefixIcon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration("WhatsApp Number (e.g. +919876543210)"),
             ),
             const SizedBox(height: 30),
 
             BlocBuilder<LostFoundBloc, LostFoundState>(
               builder: (context, state) {
                 final isLoading = state is LostFoundLoading;
-                return ElevatedButton(
+                return AppPrimaryButton(
                   onPressed: isLoading ? null : _handleSubmit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    minimumSize: const Size.fromHeight(55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  ),
-                  child: isLoading
-                      ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                      : const Text("SUBMIT POST", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  label: "SUBMIT POST",
+                  loading: isLoading,
+                  height: 55,
+                  radius: 30,
                 );
               },
             ),
           ],
         ),
       ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-      filled: true,
-      fillColor: AppColors.cardColor,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: AppColors.border)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: AppColors.border)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: AppColors.primary)),
     );
   }
 }

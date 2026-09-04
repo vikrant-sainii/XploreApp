@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class ForgotPasswordRollScreen extends StatefulWidget {
@@ -45,7 +47,8 @@ class _ForgotPasswordRollScreenState extends State<ForgotPasswordRollScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthForgotPasswordLinkSent) {
-          _showSnackBar('Reset link sent to your email! Redirecting to Login...');
+          _showSnackBar(
+              'Reset link sent to your email! Redirecting to Login...');
           Future.delayed(const Duration(milliseconds: 800), () {
             if (context.mounted) {
               Navigator.pop(context);
@@ -103,48 +106,22 @@ class _ForgotPasswordRollScreenState extends State<ForgotPasswordRollScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              SizedBox(
-                height: 55,
-                child: TextField(
-                  controller: _emailController,
-                  cursorColor: AppColors.primary,
-                  keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(color: Colors.white, fontSize: 15),
-                  decoration: _inputDecoration(
-                    "Official Email ID",
-                    FontAwesomeIcons.envelope,
-                  ),
-                  onSubmitted: (_) => _handleForgotPassword(),
-                ),
+              AppTextField(
+                controller: _emailController,
+                hintText: "Official Email ID",
+                prefixIcon: FontAwesomeIcons.envelope,
+                keyboardType: TextInputType.emailAddress,
+                onSubmitted: (_) => _handleForgotPassword(),
               ),
               const SizedBox(height: 25),
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
                   final isLoading = state is AuthLoading;
-                  return ElevatedButton(
+                  return AppPrimaryButton(
                     onPressed: isLoading ? null : _handleForgotPassword,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
-                      minimumSize: const Size.fromHeight(60),
-                    ),
-                    child: isLoading
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : const Text(
-                            "SEND RESET LINK",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
+                    label: "SEND RESET LINK",
+                    loading: isLoading,
+                    height: 60,
                   );
                 },
               ),
@@ -168,38 +145,4 @@ class _ForgotPasswordRollScreenState extends State<ForgotPasswordRollScreen> {
       ),
     );
   }
-}
-
-InputDecoration _inputDecoration(String hintText, IconData youricon) {
-  return InputDecoration(
-    contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-    prefixIcon: Container(
-      margin: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.15),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        youricon,
-        size: 18,
-        color: AppColors.primary,
-      ),
-    ),
-    filled: true,
-    fillColor: AppColors.cardColor,
-    hintText: hintText,
-    hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-    enabledBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: AppColors.border),
-    ),
-    focusedBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-    ),
-    disabledBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: AppColors.border),
-    ),
-  );
 }

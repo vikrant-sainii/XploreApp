@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/models/user_model.dart';
 import 'package:xplore_app/services/user_service.dart';
 import 'login_screen.dart';
@@ -20,7 +22,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   late TextEditingController _branchController;
   late TextEditingController _programController;
   late TextEditingController _yearController;
-  
+
   bool _isEditing = false;
   bool _isLoading = false;
   bool _isInitialized = false;
@@ -65,12 +67,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         'program': _programController.text.trim(),
         'year': _yearController.text.trim(),
       };
-      
-      final result = await UserService().updateProfile(currentUser.role, currentUser.id, updateData);
+
+      final result = await UserService()
+          .updateProfile(currentUser.role, currentUser.id, updateData);
       if (!mounted) return;
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profile updated successfully!"), backgroundColor: Colors.green),
+          const SnackBar(
+              content: Text("Profile updated successfully!"),
+              backgroundColor: Colors.green),
         );
         context.read<AuthBloc>().add(CheckSession());
         setState(() {
@@ -78,7 +83,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? "Failed to update profile")),
+          SnackBar(
+              content: Text(result['message'] ?? "Failed to update profile")),
         );
       }
     } catch (e) {
@@ -184,33 +190,38 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 ? const SizedBox(
                                     width: 24,
                                     height: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
                                   )
-                                 : TextButton.icon(
-                                     onPressed: () {
-                                       if (_isEditing) {
-                                         if (currentUser != null) {
-                                           _saveProfile(currentUser);
-                                         }
-                                       } else {
-                                         setState(() {
-                                           _isEditing = true;
-                                         });
-                                       }
-                                     },
-                                     icon: Icon(
-                                       _isEditing ? Icons.save : Icons.edit,
-                                       size: 20,
-                                       color: _isEditing ? AppColors.primary : Colors.white,
-                                     ),
-                                     label: Text(
-                                       _isEditing ? "SAVE" : "EDIT",
-                                       style: TextStyle(
-                                         color: _isEditing ? AppColors.primary : Colors.white,
-                                         fontWeight: FontWeight.bold,
-                                       ),
-                                     ),
-                                   ),
+                                : TextButton.icon(
+                                    onPressed: () {
+                                      if (_isEditing) {
+                                        if (currentUser != null) {
+                                          _saveProfile(currentUser);
+                                        }
+                                      } else {
+                                        setState(() {
+                                          _isEditing = true;
+                                        });
+                                      }
+                                    },
+                                    icon: Icon(
+                                      _isEditing ? Icons.save : Icons.edit,
+                                      size: 20,
+                                      color: _isEditing
+                                          ? AppColors.primary
+                                          : Colors.white,
+                                    ),
+                                    label: Text(
+                                      _isEditing ? "SAVE" : "EDIT",
+                                      style: TextStyle(
+                                        color: _isEditing
+                                            ? AppColors.primary
+                                            : Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                           ],
                         ),
                       ),
@@ -239,90 +250,138 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             padding: EdgeInsets.zero,
                             children: [
                               SizedBox(
-                              height: height * 0.02,
-                            ),
-                              TextField(
-                                controller: _nameController,
-                                readOnly: !_isEditing,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: myDecoration("Full Name", Icons.person_outline),
-                                onChanged: (val) => setState(() {}),
+                                height: height * 0.02,
                               ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            TextField(
-                              controller: _rollNoController,
-                              readOnly: !_isEditing,
-                              style: const TextStyle(color: Colors.white),
-                              decoration: myDecoration("Roll No", Icons.assignment_ind_outlined),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            TextField(
-                              controller: TextEditingController(text: email),
-                              readOnly: true,
-                              style: const TextStyle(color: Colors.white70),
-                              decoration: myDecoration("Official Email Id (Read-only)", Icons.mail_outline),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            TextField(
-                              controller: _branchController,
-                              readOnly: !_isEditing,
-                              style: const TextStyle(color: Colors.white),
-                              decoration: myDecoration("Branch", Icons.category_outlined),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            TextField(
-                              controller: _programController,
-                              readOnly: !_isEditing,
-                              style: const TextStyle(color: Colors.white),
-                              decoration: myDecoration("Program", Icons.school_outlined),
-                            ),
-                            SizedBox(
-                              height: height * 0.02,
-                            ),
-                            _isEditing
-                                ? SizedBox(
-                                    height: 55,
-                                    child: DropdownButtonFormField<String>(
-                                      value: _yearController.text.isNotEmpty ? _yearController.text : null,
-                                      dropdownColor: AppColors.cardColor,
-                                      icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
-                                      style: const TextStyle(color: Colors.white, fontSize: 15),
-                                      decoration: myDecoration("Year", Icons.calendar_today_outlined),
-                                      items: const [
-                                        DropdownMenuItem(value: "1", child: Text("1st")),
-                                        DropdownMenuItem(value: "2", child: Text("2nd")),
-                                        DropdownMenuItem(value: "3", child: Text("3rd")),
-                                        DropdownMenuItem(value: "4", child: Text("4th")),
-                                      ],
-                                      onChanged: (val) {
-                                        setState(() {
-                                          _yearController.text = val ?? "";
-                                        });
-                                      },
+                              AppTextField(
+                                controller: _nameController,
+                                hintText: "Full Name",
+                                prefixIcon: FontAwesomeIcons.user,
+                                enabled: _isEditing,
+                                onChanged: (_) => setState(() {}),
+                              ),
+                              SizedBox(
+                                height: height * 0.02,
+                              ),
+                              AppTextField(
+                                controller: _rollNoController,
+                                hintText: "Roll No",
+                                prefixIcon: FontAwesomeIcons.idCard,
+                                enabled: _isEditing,
+                              ),
+                              SizedBox(
+                                height: height * 0.02,
+                              ),
+                              AppTextField(
+                                controller: TextEditingController(text: email),
+                                hintText: "Official Email Id (Read-only)",
+                                prefixIcon: FontAwesomeIcons.envelope,
+                                enabled: false,
+                              ),
+                              SizedBox(
+                                height: height * 0.02,
+                              ),
+                              AppTextField(
+                                controller: _branchController,
+                                hintText: "Branch",
+                                prefixIcon: FontAwesomeIcons.codeBranch,
+                                enabled: _isEditing,
+                              ),
+                              SizedBox(
+                                height: height * 0.02,
+                              ),
+                              AppTextField(
+                                controller: _programController,
+                                hintText: "Program",
+                                prefixIcon: FontAwesomeIcons.graduationCap,
+                                enabled: _isEditing,
+                              ),
+                              SizedBox(
+                                height: height * 0.02,
+                              ),
+                              _isEditing
+                                  ? SizedBox(
+                                      height: 55,
+                                      child: DropdownButtonFormField<String>(
+                                        initialValue:
+                                            _yearController.text.isNotEmpty
+                                                ? _yearController.text
+                                                : null,
+                                        dropdownColor: AppColors.cardColor,
+                                        icon: const Icon(Icons.arrow_drop_down,
+                                            color: AppColors.primary),
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 15),
+                                        decoration: InputDecoration(
+                                          hintText: "Year",
+                                          hintStyle: const TextStyle(
+                                              color: AppColors.textSecondary),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  vertical: 18, horizontal: 16),
+                                          prefixIcon: Container(
+                                            margin: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primary
+                                                  .withValues(alpha: 0.15),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.calendar_today_outlined,
+                                              size: 20,
+                                              color: AppColors.primary,
+                                            ),
+                                          ),
+                                          filled: true,
+                                          fillColor: AppColors.cardColor,
+                                          enabledBorder:
+                                              const OutlineInputBorder(
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(20)),
+                                            borderSide: BorderSide(
+                                                color: AppColors.border),
+                                          ),
+                                          focusedBorder:
+                                              const OutlineInputBorder(
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(20)),
+                                            borderSide: BorderSide(
+                                                color: AppColors.primary,
+                                                width: 1.5),
+                                          ),
+                                        ),
+                                        items: const [
+                                          DropdownMenuItem(
+                                              value: "1", child: Text("1st")),
+                                          DropdownMenuItem(
+                                              value: "2", child: Text("2nd")),
+                                          DropdownMenuItem(
+                                              value: "3", child: Text("3rd")),
+                                          DropdownMenuItem(
+                                              value: "4", child: Text("4th")),
+                                        ],
+                                        onChanged: (val) {
+                                          setState(() {
+                                            _yearController.text = val ?? "";
+                                          });
+                                        },
+                                      ),
+                                    )
+                                  : AppTextField(
+                                      controller: TextEditingController(
+                                          text: _displayYear(
+                                              _yearController.text)),
+                                      hintText: "Year",
+                                      prefixIcon: FontAwesomeIcons.calendar,
+                                      enabled: false,
                                     ),
-                                  )
-                                : TextField(
-                                    controller: TextEditingController(text: _displayYear(_yearController.text)),
-                                    readOnly: true,
-                                    style: const TextStyle(color: Colors.white),
-                                    decoration: myDecoration("Year", Icons.calendar_today_outlined),
-                                  ),
-                            const SizedBox(height: 120),
-                          ],
+                              const SizedBox(height: 120),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
                 Align(
                   alignment: Alignment.topCenter,
                   child: Image.asset(
@@ -337,36 +396,4 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       ),
     );
   }
-}
-
-InputDecoration myDecoration(String hintText, IconData youricon) {
-  return InputDecoration(
-    labelText: hintText,
-    labelStyle: const TextStyle(color: AppColors.textSecondary),
-    contentPadding: const EdgeInsets.symmetric(vertical: 20),
-    prefixIcon: Container(
-      margin: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.15),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        size: 20,
-        youricon,
-        color: AppColors.primary,
-      ),
-    ),
-    filled: true,
-    fillColor: AppColors.cardColor,
-    hintText: hintText,
-    hintStyle: const TextStyle(color: AppColors.textSecondary),
-    enabledBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(20)),
-      borderSide: BorderSide(color: AppColors.border),
-    ),
-    focusedBorder: const OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(20)),
-      borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-    ),
-  );
 }

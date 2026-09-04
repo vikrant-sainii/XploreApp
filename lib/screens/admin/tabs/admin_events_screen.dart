@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/admin/admin_bloc.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
+import 'package:xplore_app/components/app_text_field.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class AdminEventsScreen extends StatefulWidget {
@@ -19,7 +21,8 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
   void initState() {
     super.initState();
     final bloc = context.read<AdminBloc>();
-    if (bloc.state is! AdminDataState || (bloc.state as AdminDataState).events == null) {
+    if (bloc.state is! AdminDataState ||
+        (bloc.state as AdminDataState).events == null) {
       bloc.add(const FetchAdminEvents());
     }
   }
@@ -42,25 +45,13 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: Container(
+                  child: AppTextField(
+                    controller: _searchCtrl,
+                    hintText: 'Search events…',
+                    prefixIcon: Icons.search_rounded,
                     height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.cardColor,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: TextField(
-                      controller: _searchCtrl,
-                      onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: const InputDecoration(
-                        hintText: 'Search events…',
-                        hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                        prefixIcon: Icon(Icons.search_rounded, color: AppColors.textSecondary, size: 20),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
+                    onChanged: (v) =>
+                        setState(() => _searchQuery = v.toLowerCase()),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -97,7 +88,8 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
 
                 if (isLoading && events.isEmpty) {
                   return const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary));
+                      child:
+                          CircularProgressIndicator(color: AppColors.primary));
                 }
 
                 if (errorMessage != null && events.isEmpty) {
@@ -109,12 +101,16 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
                             color: AppColors.primary, size: 40),
                         const SizedBox(height: 12),
                         Text(errorMessage,
-                            style: const TextStyle(color: AppColors.textSecondary)),
+                            style: const TextStyle(
+                                color: AppColors.textSecondary)),
                         const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () =>
-                              context.read<AdminBloc>().add(const FetchAdminEvents()),
-                          child: const Text('Retry'),
+                        AppPrimaryButton(
+                          onPressed: () => context
+                              .read<AdminBloc>()
+                              .add(const FetchAdminEvents()),
+                          label: 'Retry',
+                          height: 48,
+                          radius: 14,
                         ),
                       ],
                     ),
@@ -123,13 +119,19 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
 
                 // Apply search + type filter
                 final filtered = events.where((e) {
-                  final title = (e['eventName'] ?? e['title'] ?? '').toString().toLowerCase();
-                  final club = (e['clubName'] ?? e['club'] ?? '').toString().toLowerCase();
+                  final title = (e['eventName'] ?? e['title'] ?? '')
+                      .toString()
+                      .toLowerCase();
+                  final club = (e['clubName'] ?? e['club'] ?? '')
+                      .toString()
+                      .toLowerCase();
                   final matchesSearch = _searchQuery.isEmpty ||
                       title.contains(_searchQuery) ||
                       club.contains(_searchQuery);
-                  final eventType = (e['eventType'] ?? '').toString().toLowerCase();
-                  final isPaid = eventType == 'paid' || (e['entryFee'] ?? 0) > 0;
+                  final eventType =
+                      (e['eventType'] ?? '').toString().toLowerCase();
+                  final isPaid =
+                      eventType == 'paid' || (e['entryFee'] ?? 0) > 0;
                   final matchesType = _typeFilter == 'all' ||
                       (_typeFilter == 'paid' && isPaid) ||
                       (_typeFilter == 'free' && !isPaid);
@@ -215,11 +217,18 @@ class _AdminEventCard extends StatelessWidget {
     final title = event['eventName'] ?? event['title'] ?? 'Untitled Event';
     final club = event['clubName'] ?? event['club'] ?? '';
     final venue = event['venue'] ?? '';
-    final totalReg = event['totalRegistrations'] ?? event['registeredCount'] ?? event['participantCount'] ?? 0;
-    final imageUrl = event['imageUrl'] ?? event['imageLocation'] ?? event['image'] ?? '';
+    final totalReg = event['totalRegistrations'] ??
+        event['registeredCount'] ??
+        event['participantCount'] ??
+        0;
+    final imageUrl =
+        event['imageUrl'] ?? event['imageLocation'] ?? event['image'] ?? '';
     final eventType = (event['eventType'] ?? '').toString().toLowerCase();
     final isPaid = eventType == 'paid' || (event['entryFee'] ?? 0) > 0;
-    final revenue = event['totalAmountReceived'] ?? event['totalRevenue'] ?? event['revenue'] ?? 0;
+    final revenue = event['totalAmountReceived'] ??
+        event['totalRevenue'] ??
+        event['revenue'] ??
+        0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -284,7 +293,9 @@ class _AdminEventCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    club.isNotEmpty ? club : (venue.isNotEmpty ? venue : 'No club info'),
+                    club.isNotEmpty
+                        ? club
+                        : (venue.isNotEmpty ? venue : 'No club info'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -318,7 +329,8 @@ class _AdminEventCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: isPaid
                         ? const Color(0xFF10B981).withValues(alpha: 0.12)
@@ -328,9 +340,8 @@ class _AdminEventCard extends StatelessWidget {
                   child: Text(
                     isPaid ? '₹$revenue' : 'Free',
                     style: TextStyle(
-                      color: isPaid
-                          ? const Color(0xFF10B981)
-                          : AppColors.primary,
+                      color:
+                          isPaid ? const Color(0xFF10B981) : AppColors.primary,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),

@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/admin/admin_bloc.dart';
 import 'package:xplore_app/components/admin_input_field.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class AdminCoordinatorsScreen extends StatefulWidget {
   const AdminCoordinatorsScreen({super.key});
 
   @override
-  State<AdminCoordinatorsScreen> createState() => _AdminCoordinatorsScreenState();
+  State<AdminCoordinatorsScreen> createState() =>
+      _AdminCoordinatorsScreenState();
 }
 
 class _AdminCoordinatorsScreenState extends State<AdminCoordinatorsScreen> {
@@ -16,7 +18,8 @@ class _AdminCoordinatorsScreenState extends State<AdminCoordinatorsScreen> {
   void initState() {
     super.initState();
     final bloc = context.read<AdminBloc>();
-    if (bloc.state is! AdminDataState || (bloc.state as AdminDataState).coordinators == null) {
+    if (bloc.state is! AdminDataState ||
+        (bloc.state as AdminDataState).coordinators == null) {
       bloc.add(const FetchAdminCoordinators());
     }
   }
@@ -46,17 +49,23 @@ class _AdminCoordinatorsScreenState extends State<AdminCoordinatorsScreen> {
                   const Text(
                     'Add Coordinator',
                     style: TextStyle(
-                        color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                    icon:
+                        const Icon(Icons.close, color: AppColors.textSecondary),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              AdminInputField(controller: nameCtrl, label: 'Full Name', hint: 'Prof. John Doe'),
+              AdminInputField(
+                  controller: nameCtrl,
+                  label: 'Full Name',
+                  hint: 'Prof. John Doe'),
               const SizedBox(height: 14),
               AdminInputField(
                   controller: emailCtrl,
@@ -70,20 +79,20 @@ class _AdminCoordinatorsScreenState extends State<AdminCoordinatorsScreen> {
                   hint: '••••••••',
                   obscureText: true),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (nameCtrl.text.trim().isEmpty || emailCtrl.text.trim().isEmpty) return;
-                    context.read<AdminBloc>().add(CreateAdminCoordinator({
-                      'name': nameCtrl.text.trim(),
-                      'email': emailCtrl.text.trim(),
-                      'password': passCtrl.text,
-                    }));
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Add Coordinator'),
-                ),
+              AppPrimaryButton(
+                onPressed: () {
+                  if (nameCtrl.text.trim().isEmpty ||
+                      emailCtrl.text.trim().isEmpty) return;
+                  context.read<AdminBloc>().add(CreateAdminCoordinator({
+                        'name': nameCtrl.text.trim(),
+                        'email': emailCtrl.text.trim(),
+                        'password': passCtrl.text,
+                      }));
+                  Navigator.pop(ctx);
+                },
+                label: 'Add Coordinator',
+                height: 52,
+                radius: 16,
               ),
             ],
           ),
@@ -122,7 +131,8 @@ class _AdminCoordinatorsScreenState extends State<AdminCoordinatorsScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.person_add_rounded),
-        label: const Text('Add Coordinator', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text('Add Coordinator',
+            style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: BlocConsumer<AdminBloc, AdminState>(
         listener: (context, state) {

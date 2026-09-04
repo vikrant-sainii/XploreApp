@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/admin/admin_bloc.dart';
+import 'package:xplore_app/components/app_primary_button.dart';
 import 'package:xplore_app/config/theme.dart';
 
 class AdminOverviewScreen extends StatefulWidget {
@@ -15,7 +16,8 @@ class _AdminOverviewScreenState extends State<AdminOverviewScreen> {
   void initState() {
     super.initState();
     final bloc = context.read<AdminBloc>();
-    if (bloc.state is! AdminDataState || (bloc.state as AdminDataState).stats == null) {
+    if (bloc.state is! AdminDataState ||
+        (bloc.state as AdminDataState).stats == null) {
       bloc.add(const FetchAdminDashboardStats());
     }
   }
@@ -47,16 +49,19 @@ class _AdminOverviewScreenState extends State<AdminOverviewScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline, color: AppColors.primary, size: 48),
+                  const Icon(Icons.error_outline,
+                      color: AppColors.primary, size: 48),
                   const SizedBox(height: 12),
                   Text(errorMessage,
                       style: const TextStyle(color: AppColors.textSecondary)),
                   const SizedBox(height: 16),
-                  ElevatedButton(
+                  AppPrimaryButton(
                     onPressed: () => context
                         .read<AdminBloc>()
                         .add(const FetchAdminDashboardStats()),
-                    child: const Text('Retry'),
+                    label: 'Retry',
+                    height: 48,
+                    radius: 14,
                   ),
                 ],
               ),
@@ -272,7 +277,8 @@ class _EventListTile extends StatelessWidget {
     final imageUrl = event['imageLocation'] ?? event['image'] ?? '';
     final title = event['title'] ?? 'Untitled Event';
     final club = event['clubName'] ?? event['club'] ?? '';
-    final totalReg = event['totalRegistrations'] ?? event['participantCount'] ?? 0;
+    final totalReg =
+        event['totalRegistrations'] ?? event['participantCount'] ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
