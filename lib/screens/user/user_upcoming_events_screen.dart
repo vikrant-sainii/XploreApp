@@ -1,9 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/event/event_bloc.dart';
 import 'user_home_screen.dart';
+import 'user_event_details_screen.dart';
 
-class UserUpcomingEventsScreen extends StatelessWidget {
+class UserUpcomingEventsScreen extends StatefulWidget {
   final Function(int) changeindex;
   const UserUpcomingEventsScreen({super.key, required this.changeindex});
+
+  @override
+  State<UserUpcomingEventsScreen> createState() => _UserUpcomingEventsScreenState();
+}
+
+class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,50 +27,38 @@ class UserUpcomingEventsScreen extends StatelessWidget {
       appBar: AppBar(
         scrolledUnderElevation: 0,
         leadingWidth: 60,
-        backgroundColor: Color(0xFFFF9AB2),
+        backgroundColor: const Color(0xFFFF9AB2),
         leading: Row(
           children: [
-            const SizedBox(width: 8), // This adds your space on the left
+            const SizedBox(width: 8),
             IconButton(
-              iconSize: 30,
+              iconSize: 24,
               icon: const Icon(Icons.arrow_back),
               color: Colors.black,
-              // This is the correct way to style an IconButton
               style: IconButton.styleFrom(
                 backgroundColor: Colors.white,
-                shape: const CircleBorder(), // Makes the background a circle
+                shape: const CircleBorder(),
               ),
               onPressed: () {
-                changeindex(0);
+                widget.changeindex(0);
               },
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            iconSize: 30,
-            icon: Icon(Icons.more_vert),
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
-            color: Colors.black,
-          ),
-          Padding(padding: EdgeInsets.all(8))
-        ],
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final height = constraints.maxHeight;
           final width = constraints.maxWidth;
           return Container(
-            color: Color(0xFFFF9AB2),
+            color: const Color(0xFFFF9AB2),
             child: Stack(
               children: [
                 Align(
                   alignment: Alignment.topLeft,
                   child: Padding(
-                    // Add padding to prevent it from touching the edge
                     padding: const EdgeInsets.only(top: 16, left: 24),
-                    child: Text(
+                    child: const Text(
                       "Upcoming\nEvents",
                       style: TextStyle(
                         color: Colors.white,
@@ -65,7 +69,6 @@ class UserUpcomingEventsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // 2. Align the Image to the top-right
                 Align(
                   alignment: Alignment.topRight,
                   child: Image.asset(
@@ -76,62 +79,103 @@ class UserUpcomingEventsScreen extends StatelessWidget {
                 ),
                 Container(
                   margin: EdgeInsets.only(
-                      top: height * 0.2,
-                      left: width * 0.02,
-                      right: width * 0.02),
+                    top: height * 0.2,
+                    left: width * 0.02,
+                    right: width * 0.02,
+                  ),
                   width: width,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
-                    color: Color(0xFFF7F7FA),
+                    color: const Color(0xFFF7F7FA),
                   ),
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: height * 0.02,
-                      ),
-                      Container(
-                        height: height * 0.7,
-                        margin: EdgeInsets.symmetric(
-                          horizontal: width * 0.05,
-                        ),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: 5,
-                          // padding: EdgeInsets.only(),
-                          scrollDirection: Axis.vertical,
-                          itemBuilder: (BuildContext context, int index) {
-                            if (index < 4) {
-                              return Card(
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30)),
-                                child: EventTile(
-                                  imagelocation: "assets/octave.png",
-                                  title: "OCTAVE CLUB",
-                                  subtitle: "Free Workshop",
-                                  onTap: () {},
-                                  type: TrailingType.typeUpcoming,
-                                ),
-                              );
-                            } else {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 32.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Text(
-                                      "Coming Soon..",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          color: Color.fromRGBO(0, 0, 0, 0.65)),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
+                      const SizedBox(height: 16),
+                      // Search bar
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: width * 0.05),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (val) {
+                            context.read<EventBloc>().add(SearchEvents(val));
                           },
+                          decoration: InputDecoration(
+                            hintText: "Search events, venue, clubs...",
+                            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: Container(
+                          margin: EdgeInsets.symmetric(horizontal: width * 0.05),
+                          child: BlocBuilder<EventBloc, EventState>(
+                            builder: (context, state) {
+                              if (state is EventLoading) {
+                                return const Center(child: CircularProgressIndicator());
+                              } else if (state is EventsLoaded) {
+                                final events = state.filteredEvents.isNotEmpty
+                                    ? state.filteredEvents
+                                    : state.upcomingEvents;
+
+                                if (events.isEmpty) {
+                                  return const Center(
+                                    child: Text(
+                                      "No upcoming events found.",
+                                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                                    ),
+                                  );
+                                }
+
+                                return RefreshIndicator(
+                                  onRefresh: () async {
+                                    context.read<EventBloc>().add(const FetchAllEvents());
+                                  },
+                                  child: ListView.builder(
+                                    padding: const EdgeInsets.only(bottom: 100),
+                                    itemCount: events.length,
+                                    itemBuilder: (BuildContext context, int index) {
+                                      final event = events[index];
+                                      return Card(
+                                        elevation: 2,
+                                        margin: const EdgeInsets.symmetric(vertical: 6),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(25),
+                                        ),
+                                        child: EventTile(
+                                          imagelocation: event.imageLocation,
+                                          title: event.title,
+                                          subtitle: event.subtitle,
+                                          timeText: event.formattedTime,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => UserEventDetailsScreen(
+                                                  changeindex: widget.changeindex,
+                                                  preview: EventDraft.no,
+                                                  event: event,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          type: TrailingType.typeUpcoming,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
                         ),
                       ),
                     ],

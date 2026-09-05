@@ -1,127 +1,190 @@
 import 'package:flutter/material.dart';
-import 'package:xplore_app/screens/unused/otp_verification_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xplore_app/blocs/auth/auth_bloc.dart';
+import 'otp_verification_screen.dart';
 
-class ForgotPasswordRollScreen extends StatelessWidget {
+class ForgotPasswordRollScreen extends StatefulWidget {
   const ForgotPasswordRollScreen({super.key});
 
   @override
+  State<ForgotPasswordRollScreen> createState() => _ForgotPasswordRollScreenState();
+}
+
+class _ForgotPasswordRollScreenState extends State<ForgotPasswordRollScreen> {
+  final TextEditingController _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  void _handleSendOtp() {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter your registered email"), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    context.read<AuthBloc>().add(ForgotPasswordRequested(email));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: LayoutBuilder(builder: (context, constraints) {
-        double height = constraints.maxHeight;
-        final bool isPortrait = (MediaQuery.of(context).orientation == Orientation.portrait);
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: [Color(0xFFFFE3C9), Color.fromARGB(255, 134, 125, 183)],
-              ),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthForgotPasswordOtpSent) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.green),
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OtpVerificationScreen(email: _emailController.text.trim()),
             ),
-            child: ListView(
-              children: [
-                Row(
-                  children: [
-                    Padding(padding: EdgeInsets.only(left: 25)),
-                    IconButton(
-                      iconSize: 32,
-                      onPressed: () => Navigator.pop(context),
-                      splashColor: Colors.grey.withAlpha(64),
-                      icon: Icon(
-                        Icons.arrow_back,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
+          );
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            double height = constraints.maxHeight;
+            final bool isPortrait = (MediaQuery.of(context).orientation == Orientation.portrait);
+            return Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [Color(0xFFFFE3C9), Color.fromARGB(255, 134, 125, 183)],
                 ),
-                SizedBox(
-                  height: height*0.04,
-                ),
-                Image.asset(
-                  "assets/roll_pass.png",
-                  height: isPortrait ? height * 0.34 : height * 0.6,
-                ),
-                SizedBox(
-                  height: height*0.06,
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 25),
-                  child: Column(
+              ),
+              child: Stack(
+                children: [
+                  ListView(
                     children: [
-                      TextField(
-                        decoration: myDecoration("Roll No", Icons.person),
-                        obscureText: false,
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16, top: 12),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 22,
+                            child: IconButton(
+                              iconSize: 22,
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(Icons.arrow_back, color: Colors.black),
+                            ),
+                          ),
+                        ),
                       ),
-                      SizedBox(
-                        height: 0.01*height,
+                      SizedBox(height: height * 0.03),
+                      Image.asset(
+                        "assets/roll_pass.png",
+                        height: isPortrait ? height * 0.32 : height * 0.5,
                       ),
-                      TextField(
-                        decoration: myDecoration("Enter Password", Icons.lock),
-                        obscureText: true,
+                      SizedBox(height: height * 0.04),
+                      const Text(
+                        "FORGOT PASSWORD",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF191C32),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          "Enter your registered NITJ email address to receive reset instructions.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                      ),
+                      SizedBox(height: height * 0.03),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 25),
+                        child: TextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: myForgotDecoration("Registered Email ID", Icons.email),
+                        ),
+                      ),
+                      SizedBox(height: height * 0.04),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25),
+                        child: ElevatedButton(
+                          onPressed: _handleSendOtp,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF191C32),
+                            minimumSize: const Size.fromHeight(65),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                          ),
+                          child: const Text(
+                            "SEND RESET LINK / OTP",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
-                SizedBox(
-                  height: height*0.07,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(25),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const OtpVerificationScreen()),
-                      );
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      if (state is AuthLoading) {
+                        return Container(
+                          color: Colors.black26,
+                          child: const Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      return const SizedBox.shrink();
                     },
-                    style: ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(Color(0xFF191C32)),
-                        fixedSize: WidgetStatePropertyAll(Size.fromHeight(65))),
-                    child: Text(
-                      "CONFIRM",
-                      selectionColor: Colors.white,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-InputDecoration myDecoration(String hintText, IconData youricon) {
+InputDecoration myForgotDecoration(String hintText, IconData youricon) {
   return InputDecoration(
-    contentPadding: EdgeInsets.symmetric(vertical: 20),
+    contentPadding: const EdgeInsets.symmetric(vertical: 20),
     prefixIcon: Container(
-      margin: EdgeInsets.all(8),
-      decoration:
-          BoxDecoration(color: Color(0xFFFFEBE4), shape: BoxShape.circle),
+      margin: const EdgeInsets.all(8),
+      decoration: const BoxDecoration(
+        color: Color(0xFFFFEBE4),
+        shape: BoxShape.circle,
+      ),
       child: Icon(
-        size: 20,
         youricon,
-        color: Color(0xFFF7931A),
+        size: 18,
+        color: const Color(0xFFF7931A),
       ),
     ),
     filled: true,
     fillColor: Colors.white,
     hintText: hintText,
-    hintStyle: TextStyle(color: Colors.grey),
-    enabledBorder: OutlineInputBorder(
+    hintStyle: const TextStyle(color: Colors.grey),
+    enabledBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: Colors.white), // <- when not focused
+      borderSide: BorderSide(color: Colors.white),
     ),
-    focusedBorder: OutlineInputBorder(
+    focusedBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(40)),
-      borderSide: BorderSide(color: Colors.grey, width: 1), // <- when focused
+      borderSide: BorderSide(color: Colors.grey, width: 1),
     ),
   );
 }

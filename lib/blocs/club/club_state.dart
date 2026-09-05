@@ -1,22 +1,8 @@
 import 'package:equatable/equatable.dart';
+import '../../models/club_model.dart';
+import '../../models/event_model.dart';
 
-// Dummy model to represent club data
-class ClubModel extends Equatable {
-  final String id;
-  final String name;
-  final String role; // "HEAD" or "MEMBER"
-  final String image;
-
-  const ClubModel({
-    required this.id,
-    required this.name,
-    required this.role,
-    required this.image,
-  });
-
-  @override
-  List<Object?> get props => [id, name, role, image];
-}
+export '../../models/club_model.dart';
 
 abstract class ClubState extends Equatable {
   const ClubState();
@@ -30,12 +16,23 @@ class ClubInitial extends ClubState {}
 class ClubLoading extends ClubState {}
 
 class ClubsLoaded extends ClubState {
-  final List<ClubModel> clubs;
+  final List<ClubModel> clubs; // user's joined clubs
+  final List<ClubModel> allClubs; // all college clubs
 
-  const ClubsLoaded(this.clubs);
+  const ClubsLoaded(this.clubs, {this.allClubs = const []});
 
   @override
-  List<Object?> get props => [clubs];
+  List<Object?> get props => [clubs, allClubs];
+}
+
+class ClubDetailsLoaded extends ClubState {
+  final ClubModel club;
+  final List<EventModel> events;
+
+  const ClubDetailsLoaded({required this.club, required this.events});
+
+  @override
+  List<Object?> get props => [club, events];
 }
 
 class ClubError extends ClubState {

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../models/user_model.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();
@@ -12,32 +13,57 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class Authenticated extends AuthState {
-  final String userEmail;
-  const Authenticated(this.userEmail);
+  final UserModel user;
+
+  const Authenticated(this.user);
 
   @override
-  List<Object?> get props => [userEmail];
+  List<Object?> get props => [user];
+}
+
+class AuthNeeds2FA extends AuthState {
+  final String email;
+  final String message;
+
+  const AuthNeeds2FA(this.email, this.message);
+
+  @override
+  List<Object?> get props => [email, message];
 }
 
 class RegisterSuccess extends AuthState {
-  final String userEmail;
-  const RegisterSuccess(this.userEmail);
+  final String message;
+
+  const RegisterSuccess(this.message);
 
   @override
-  List<Object?> get props => [userEmail];
+  List<Object?> get props => [message];
+}
+
+class AuthForgotPasswordOtpSent extends AuthState {
+  final String email;
+  final String message;
+
+  const AuthForgotPasswordOtpSent(this.email, this.message);
+
+  @override
+  List<Object?> get props => [email, message];
+}
+
+class AuthPasswordResetSuccess extends AuthState {
+  final String message;
+
+  const AuthPasswordResetSuccess(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }
 
 class Unauthenticated extends AuthState {}
 
-// States for forgot password flow
-class AuthForgotPasswordOtpSent extends AuthState {}
-
-class AuthForgotPasswordVerified extends AuthState {}
-
-class AuthPasswordResetSuccess extends AuthState {}
-
 class AuthError extends AuthState {
   final String message;
+
   const AuthError(this.message);
 
   @override
