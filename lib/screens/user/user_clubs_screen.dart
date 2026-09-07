@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/club/club_bloc.dart';
 import 'package:xplore_app/screens/user/club_details_screen.dart';
-import 'package:xplore_app/screens/head/head_dashboard_screen.dart';
+import 'package:xplore_app/screens/head/head_portal_screen.dart';
 import 'package:xplore_app/screens/head/head_member_management_screen.dart';
 import 'package:xplore_app/screens/head/head_announcements_screen.dart';
 
@@ -178,7 +178,7 @@ class UserClubsScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => HeadDashboardScreen(
+                      builder: (_) => HeadPortalScreen(
                         clubId: club.id,
                         clubName: club.name,
                       ),

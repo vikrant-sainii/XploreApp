@@ -11,14 +11,23 @@ import 'package:xplore_app/screens/user/club_details_screen.dart';
 import 'package:xplore_app/screens/user/user_profile_screen.dart';
 
 class HeadPortalScreen extends StatefulWidget {
-  const HeadPortalScreen({super.key});
+  final int initialIndex;
+  final String? clubId;
+  final String? clubName;
+
+  const HeadPortalScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.clubId,
+    this.clubName,
+  });
 
   @override
   State<HeadPortalScreen> createState() => _HeadPortalScreenState();
 }
 
 class _HeadPortalScreenState extends State<HeadPortalScreen> {
-  int currentindex = 0;
+  late int currentindex;
 
   void _modifyindex(int index) {
     setState(() {
@@ -29,7 +38,7 @@ class _HeadPortalScreenState extends State<HeadPortalScreen> {
   @override
   void initState() {
     super.initState();
-    currentindex = 0;
+    currentindex = widget.initialIndex;
     context.read<ClubBloc>().add(FetchAllClubs());
   }
 
@@ -71,11 +80,23 @@ class _HeadPortalScreenState extends State<HeadPortalScreen> {
     }
 
     final List<Widget> screens = [
-      HeadDashboardScreen(changeindex: _modifyindex),
-      HeadAddEventScreen(changeindex: _modifyindex),
+      HeadDashboardScreen(
+        clubId: widget.clubId,
+        clubName: widget.clubName,
+        changeindex: _modifyindex,
+      ),
+      HeadAddEventScreen(
+        clubId: widget.clubId,
+        clubName: widget.clubName,
+        changeindex: _modifyindex,
+      ),
       isOfficialClub && matchedClub != null
           ? ClubDetailsScreen(club: matchedClub, changeindex: _modifyindex)
-          : HeadEventManagementScreen(changeindex: _modifyindex),
+          : HeadEventManagementScreen(
+              clubId: widget.clubId,
+              clubName: widget.clubName,
+              changeindex: _modifyindex,
+            ),
       UserProfileScreen(changeindex: _modifyindex),
     ];
 

@@ -9,7 +9,7 @@ import 'package:xplore_app/screens/user/club_details_screen.dart';
 import 'package:xplore_app/screens/user/user_event_details_screen.dart';
 import 'package:xplore_app/screens/user/notifications_screen.dart';
 import 'package:xplore_app/screens/user/xplore_clubs_popup.dart';
-import 'package:xplore_app/screens/head/head_dashboard_screen.dart';
+import 'package:xplore_app/screens/head/head_portal_screen.dart';
 import 'package:xplore_app/screens/head/head_member_management_screen.dart';
 
 class UserHomeScreen extends StatelessWidget {
@@ -443,7 +443,7 @@ class _MyClubsCarouselState extends State<MyClubsCarousel> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => HeadDashboardScreen(
+                        builder: (_) => HeadPortalScreen(
                           clubId: m.clubId,
                           clubName: clubName,
                         ),

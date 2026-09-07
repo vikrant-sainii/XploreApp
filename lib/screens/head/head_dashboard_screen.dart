@@ -9,6 +9,8 @@ import 'package:xplore_app/screens/user/notifications_screen.dart';
 import 'head_member_management_screen.dart';
 import 'head_announcements_screen.dart';
 import 'head_attendance_screen.dart';
+import 'head_event_management_screen.dart';
+import 'head_add_event_screen.dart';
 import '../user/user_event_details_screen.dart';
 
 class HeadDashboardScreen extends StatefulWidget {
@@ -148,7 +150,7 @@ class _HeadDashboardScreenState extends State<HeadDashboardScreen> {
                   else
                     _buildDashboardGrid(context, clubId, clubName),
                   const SizedBox(height: 28),
-                  _buildRecentActivities(events),
+                  _buildRecentActivities(events, clubId, clubName),
                   const SizedBox(height: 120), // Bottom nav padding
                 ],
               ),
@@ -351,7 +353,21 @@ class _HeadDashboardScreenState extends State<HeadDashboardScreen> {
           Icons.event_note,
           const Color(0xFF1D1D27),
           Colors.white,
-          () => widget.changeindex?.call(2), // Switch to event management tab (index 2)
+          () {
+            if (widget.changeindex != null) {
+              widget.changeindex!(2);
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HeadEventManagementScreen(
+                    clubId: clubId,
+                    clubName: clubName,
+                  ),
+                ),
+              );
+            }
+          },
         ),
         _buildActionCard(
           "Member\nManagement",
@@ -437,7 +453,7 @@ class _HeadDashboardScreenState extends State<HeadDashboardScreen> {
     );
   }
 
-  Widget _buildRecentActivities(List<EventModel> events) {
+  Widget _buildRecentActivities(List<EventModel> events, String? clubId, String clubName) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -489,7 +505,19 @@ class _HeadDashboardScreenState extends State<HeadDashboardScreen> {
                 const SizedBox(height: 14),
                 ElevatedButton.icon(
                   onPressed: () {
-                    widget.changeindex?.call(1);
+                    if (widget.changeindex != null) {
+                      widget.changeindex!(1);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => HeadAddEventScreen(
+                            clubId: clubId,
+                            clubName: clubName,
+                          ),
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text("Create Event"),

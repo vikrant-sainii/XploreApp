@@ -346,13 +346,13 @@ class EventModel extends Equatable {
       'totalSeats': totalSeats,
       'entryFee': entryFee,
       'registrationFee': entryFee,
-      'imageUrl': (imageUrl != null && imageUrl!.isNotEmpty) ? imageUrl : null,
+      'imageUrl': imageUrl ?? '',
       'requiredFields': requiredFields,
       'customFields': customFields,
       'allowedPrograms': allowedPrograms.isNotEmpty ? allowedPrograms : ['BTECH', 'MTECH', 'OTHER'],
       'allowedYears': allowedYears,
       'allowedBranches': allowedBranches,
-      'registrationDeadline': registrationDeadline?.toIso8601String() ?? startTime?.toIso8601String(),
+      'registrationDeadline': registrationDeadline?.toIso8601String(),
       'reviewStatus': 'PENDING',
       'registrationType': registrationType,
       'minTeamSize': minTeamSize,
@@ -366,15 +366,27 @@ class EventModel extends Equatable {
       'paymentInstructions': paymentInstructions,
       'collegePaymentUrl': collegePaymentUrl,
       'showWinner': showWinner,
+      'provideCertificate': providesCertificate,
+      'feedbackEnabled': true,
       'rules': rules,
       'organizerType': 'CLUB',
+      'sponsors': sponsors,
+      'media': media,
     };
+
+    if (createdBy != null) {
+      if (createdBy is String) {
+        map['createdBy'] = createdBy;
+      } else if (createdBy is Map && createdBy!['id'] != null) {
+        map['createdBy'] = createdBy!['id'];
+      }
+    }
 
     if (id.isNotEmpty && !id.startsWith('draft-')) {
       map['id'] = id;
     }
 
-    if (clubId != null && clubId!.isNotEmpty && clubId != '1') {
+    if (clubId != null && clubId!.isNotEmpty) {
       map['clubId'] = clubId;
     }
 

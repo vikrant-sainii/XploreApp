@@ -45,8 +45,16 @@ class MediaInput {
 }
 
 class HeadAddEventScreen extends StatefulWidget {
-  final Function(int) changeindex;
-  const HeadAddEventScreen({super.key, required this.changeindex});
+  final Function(int)? changeindex;
+  final String? clubId;
+  final String? clubName;
+
+  const HeadAddEventScreen({
+    super.key,
+    this.changeindex,
+    this.clubId,
+    this.clubName,
+  });
 
   @override
   State<HeadAddEventScreen> createState() => _HeadAddEventScreenState();
@@ -214,6 +222,24 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
     return DateFormat('dd/MM/yyyy, hh:mm a').format(dt);
   }
 
+  String? _resolveClubId() {
+    String? resolved = widget.clubId;
+    final authState = context.read<AuthBloc>().state;
+    if ((resolved == null || resolved.isEmpty || resolved == '1') && authState is Authenticated) {
+      final user = authState.user;
+      if (user.clubId != null && user.clubId!.isNotEmpty && user.clubId != '1') {
+        resolved = user.clubId;
+      } else if (user.memberships.isNotEmpty) {
+        final headMem = user.memberships.firstWhere(
+          (m) => m.role.toUpperCase() == 'CLUB_HEAD' || m.role.toUpperCase() == 'HEAD' || m.role.toUpperCase() == 'COORDINATOR',
+          orElse: () => user.memberships.first,
+        );
+        resolved = headMem.clubId;
+      }
+    }
+    return resolved;
+  }
+
   EventModel _buildDraftEventModel() {
     final String rawType = _registrationType == 'No Registration (Open / Walk-in)'
         ? 'none'
@@ -250,6 +276,7 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
       collegePaymentUrl: _collegePaymentUrlController.text.trim(),
       showWinner: _displayResults,
       reviewStatus: 'PENDING',
+      clubId: _resolveClubId(),
       requiredFields: _requiredStudentInfo,
       customFields: _customFields
           .where((cf) => cf.labelController.text.trim().isNotEmpty)
@@ -298,7 +325,7 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => UserEventDetailsScreen(
-          changeindex: widget.changeindex,
+          changeindex: widget.changeindex ?? (_) {},
           preview: EventDraft.yes,
           event: draft,
         ),
@@ -323,15 +350,19 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
     setState(() => _isSubmitting = true);
     try {
       final authState = context.read<AuthBloc>().state;
-      String? clubId;
+      String? currentUserId;
       if (authState is Authenticated) {
-        clubId = authState.user.clubId;
+        currentUserId = authState.user.id;
       }
 
+      final clubId = _resolveClubId();
       final draft = _buildDraftEventModel();
       final eventData = draft.toCreateJson();
-      if (clubId != null && clubId.isNotEmpty && clubId != '1') {
+      if (clubId != null && clubId.isNotEmpty) {
         eventData['clubId'] = clubId;
+      }
+      if (currentUserId != null && currentUserId.isNotEmpty) {
+        eventData['createdBy'] = currentUserId;
       }
 
       if (_posterFile != null) {
@@ -366,7 +397,7 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message), backgroundColor: const Color(0xFF5FC88F)),
             );
-            widget.changeindex(3);
+            widget.changeindex?.call(3);
           }
         } else if (state is HeadError) {
           if (mounted) {
@@ -393,7 +424,13 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
                   backgroundColor: Colors.white,
                   shape: const CircleBorder(),
                 ),
-                onPressed: () => widget.changeindex(0),
+                onPressed: () {
+                  if (widget.changeindex != null) {
+                    widget.changeindex!(0);
+                  } else if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
+                },
               ),
             ],
           ),
@@ -652,7 +689,13 @@ class _HeadAddEventScreenState extends State<HeadAddEventScreen> {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () => widget.changeindex(0),
+                onPressed: () {
+                  if (widget.changeindex != null) {
+                    widget.changeindex!(0);
+                  } else if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
+                },
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(54),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),

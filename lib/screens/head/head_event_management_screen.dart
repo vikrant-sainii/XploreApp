@@ -7,8 +7,16 @@ import '../user/user_event_details_screen.dart';
 import 'event_registrations_screen.dart';
 
 class HeadEventManagementScreen extends StatelessWidget {
-  final Function(int) changeindex;
-  const HeadEventManagementScreen({super.key, required this.changeindex});
+  final Function(int)? changeindex;
+  final String? clubId;
+  final String? clubName;
+
+  const HeadEventManagementScreen({
+    super.key,
+    this.changeindex,
+    this.clubId,
+    this.clubName,
+  });
 
   void _showEventActionsModal(BuildContext context, EventModel event, String? clubId) {
     showModalBottomSheet(
@@ -57,7 +65,7 @@ class HeadEventManagementScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => UserEventDetailsScreen(
-                      changeindex: changeindex,
+                      changeindex: changeindex ?? (_) {},
                       preview: EventDraft.yes,
                       event: event,
                     ),
@@ -108,10 +116,12 @@ class HeadEventManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authState = context.read<AuthBloc>().state;
-    String? clubId;
-    if (authState is Authenticated) {
-      clubId = authState.user.clubId;
+    String? activeClubId = clubId;
+    if (activeClubId == null && authState is Authenticated) {
+      activeClubId = authState.user.clubId;
     }
+
+    final bool canPop = Navigator.canPop(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -129,7 +139,13 @@ class HeadEventManagementScreen extends StatelessWidget {
                 backgroundColor: Colors.white,
                 shape: const CircleBorder(),
               ),
-              onPressed: () => changeindex(0),
+              onPressed: () {
+                if (changeindex != null) {
+                  changeindex!(0);
+                } else if (canPop) {
+                  Navigator.pop(context);
+                }
+              },
             ),
           ],
         ),
@@ -215,7 +231,7 @@ class HeadEventManagementScreen extends StatelessWidget {
                                   ),
                                   child: IconButton(
                                     icon: const Icon(Icons.add, color: Colors.black),
-                                    onPressed: () => changeindex(1), // Switch to Add Event screen
+                                    onPressed: () => changeindex?.call(1), // Switch to Add Event screen
                                   ),
                                 ),
                               ],
@@ -281,7 +297,7 @@ class HeadEventManagementScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 16),
                                     ElevatedButton.icon(
-                                      onPressed: () => changeindex(1),
+                                      onPressed: () => changeindex?.call(1),
                                       icon: const Icon(Icons.add, color: Colors.white),
                                       label: const Text("CREATE EVENT PROPOSAL", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                                       style: ElevatedButton.styleFrom(
