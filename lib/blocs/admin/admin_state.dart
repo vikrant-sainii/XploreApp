@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../models/coordinator_model.dart';
 
 abstract class AdminState extends Equatable {
   const AdminState();
@@ -34,7 +35,7 @@ class AdminClubsLoaded extends AdminState {
 }
 
 class AdminCoordinatorsLoaded extends AdminState {
-  final List<Map<String, dynamic>> coordinators;
+  final List<CoordinatorModel> coordinators;
 
   const AdminCoordinatorsLoaded(this.coordinators);
 

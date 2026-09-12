@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'api_config.dart';
+import '../models/coordinator_model.dart';
 
 class AdminService {
   Future<Map<String, dynamic>> getDashboardStats() async {
@@ -65,7 +66,8 @@ class AdminService {
     }
   }
 
-  Future<Map<String, dynamic>> updateClub(String id, Map<String, dynamic> updateData) async {
+  Future<Map<String, dynamic>> updateClub(
+      String id, Map<String, dynamic> updateData) async {
     final url = ApiConfig.getUri('/admin/clubs/$id');
     try {
       final response = await http.put(
@@ -82,7 +84,7 @@ class AdminService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getCoordinators() async {
+  Future<List<CoordinatorModel>> getCoordinators() async {
     final url = ApiConfig.getUri('/admin/coordinators');
     try {
       final response = await http.get(
@@ -90,10 +92,15 @@ class AdminService {
         headers: await ApiConfig.getHeaders(requireAuth: true),
       );
       final data = ApiConfig.handleResponse(response);
-      if (data is List) {
-        return data.whereType<Map<String, dynamic>>().toList();
-      }
-      return [];
+      final rawList = data is List
+          ? data
+          : data is Map && data['coordinators'] is List
+              ? data['coordinators'] as List
+              : const [];
+      return rawList
+          .whereType<Map<String, dynamic>>()
+          .map(CoordinatorModel.fromJson)
+          .toList();
     } on ApiException catch (e) {
       throw Exception(e.message);
     } catch (e) {
@@ -126,7 +133,8 @@ class AdminService {
     }
   }
 
-  Future<Map<String, dynamic>> updateCoordinator(String id, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> updateCoordinator(
+      String id, Map<String, dynamic> data) async {
     final url = ApiConfig.getUri('/admin/coordinators/$id');
     try {
       final response = await http.put(
@@ -177,7 +185,9 @@ class AdminService {
       );
       final data = ApiConfig.handleResponse(response);
       if (data is Map && data['events'] is List) {
-        return (data['events'] as List).whereType<Map<String, dynamic>>().toList();
+        return (data['events'] as List)
+            .whereType<Map<String, dynamic>>()
+            .toList();
       }
       return [];
     } on ApiException catch (e) {
