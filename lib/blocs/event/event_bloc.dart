@@ -176,5 +176,29 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         }
       }
     });
+
+    on<CreateTeamRequested>((event, emit) async {
+      emit(EventLoading());
+      try {
+        final result = await _eventService.createTeam(
+          eventId: event.eventId,
+          teamName: event.teamName,
+          memberIds: event.memberIds,
+          formResponses: event.formResponses,
+        );
+
+        final qrCode = result['qrCode']?.toString() ?? result['ticketCode']?.toString();
+        final status = result['status']?.toString() ?? 'REGISTERED';
+        final message = result['message']?.toString() ?? 'Team created and registration successful!';
+
+        emit(EventRegistrationSuccess(message, qrCode: qrCode, status: status));
+
+        add(FetchAllEvents(userId: _activeUserId));
+      } catch (e) {
+        emit(EventError(e.toString().replaceAll('Exception: ', '')));
+        add(FetchAllEvents(userId: _activeUserId));
+      }
+    });
   }
 }
+

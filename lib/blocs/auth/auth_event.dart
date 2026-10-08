@@ -68,11 +68,24 @@ class RegisterStudentRequested extends RegisterRequested {
 class RegisterExternalRequested extends AuthEvent {
   final String name;
   final String email;
+  final String? password;
+  final String? collegeName;
+  final String? phone;
+  final String? program;
+  final dynamic year;
 
-  const RegisterExternalRequested(this.name, this.email);
+  const RegisterExternalRequested({
+    required this.name,
+    required this.email,
+    this.password,
+    this.collegeName,
+    this.phone,
+    this.program,
+    this.year,
+  });
 
   @override
-  List<Object?> get props => [name, email];
+  List<Object?> get props => [name, email, password, collegeName, phone, program, year];
 }
 
 class Verify2FARequested extends AuthEvent {

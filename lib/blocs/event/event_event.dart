@@ -60,3 +60,21 @@ class SearchEvents extends EventEvent {
   @override
   List<Object?> get props => [query];
 }
+
+class CreateTeamRequested extends EventEvent {
+  final String eventId;
+  final String teamName;
+  final List<String> memberIds;
+  final Map<String, dynamic>? formResponses;
+
+  const CreateTeamRequested({
+    required this.eventId,
+    required this.teamName,
+    required this.memberIds,
+    this.formResponses,
+  });
+
+  @override
+  List<Object?> get props => [eventId, teamName, memberIds, formResponses];
+}
+

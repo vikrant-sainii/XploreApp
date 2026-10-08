@@ -254,4 +254,68 @@ class EventService {
     final data = ApiConfig.handleResponse(response);
     return data is Map<String, dynamic> ? data : {'success': true};
   }
+
+  Future<Map<String, dynamic>> createTeam({
+    required String eventId,
+    required String teamName,
+    required List<String> memberIds,
+    Map<String, dynamic>? formResponses,
+  }) async {
+    final url = ApiConfig.getUri('/teams');
+    final body = <String, dynamic>{
+      'eventId': eventId,
+      'teamName': teamName,
+      'members': memberIds,
+      'formResponses': formResponses ?? {},
+    };
+
+    final response = await http.post(
+      url,
+      headers: await ApiConfig.getHeaders(requireAuth: true),
+      body: jsonEncode(body),
+    );
+    final data = ApiConfig.handleResponse(response);
+    return data is Map<String, dynamic> ? data : {'success': true};
+  }
+
+  Future<Map<String, dynamic>?> getMyTeam(String eventId) async {
+    try {
+      final url = ApiConfig.getUri('/teams/event/$eventId');
+      final response = await http.get(url, headers: await ApiConfig.getHeaders(requireAuth: true));
+      final data = ApiConfig.handleResponse(response);
+      if (data is Map<String, dynamic>) return data;
+    } catch (_) {
+      try {
+        final url2 = ApiConfig.getUri('/teams/$eventId');
+        final response2 = await http.get(url2, headers: await ApiConfig.getHeaders(requireAuth: true));
+        final data2 = ApiConfig.handleResponse(response2);
+        if (data2 is Map<String, dynamic>) return data2;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>> addTeamMember(String teamId, String memberId) async {
+    final url = ApiConfig.getUri('/teams/$teamId/members');
+    final response = await http.post(
+      url,
+      headers: await ApiConfig.getHeaders(requireAuth: true),
+      body: jsonEncode({'memberId': memberId, 'studentId': memberId}),
+    );
+    final data = ApiConfig.handleResponse(response);
+    return data is Map<String, dynamic> ? data : {'success': true};
+  }
+
+  Future<Map<String, dynamic>> removeTeamMember(String teamId, String memberId) async {
+    final url = ApiConfig.getUri('/teams/$teamId/members/$memberId');
+    final response = await http.delete(
+      url,
+      headers: await ApiConfig.getHeaders(requireAuth: true),
+      body: jsonEncode({'memberId': memberId, 'studentId': memberId}),
+    );
+    final data = ApiConfig.handleResponse(response);
+    return data is Map<String, dynamic> ? data : {'success': true};
+  }
 }
+
+

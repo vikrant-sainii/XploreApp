@@ -19,6 +19,8 @@ class ParticipationModel extends Equatable {
   final String? orderId;
   final DateTime? createdAt;
 
+  final Map<String, dynamic>? team;
+
   const ParticipationModel({
     required this.id,
     this.studentId,
@@ -36,6 +38,7 @@ class ParticipationModel extends Equatable {
     this.paymentId,
     this.orderId,
     this.createdAt,
+    this.team,
   });
 
   bool get isAttended => status == 'ATTENDED' || attendedAt != null;
@@ -91,6 +94,7 @@ class ParticipationModel extends Equatable {
       paymentId: json['paymentId']?.toString(),
       orderId: json['orderId']?.toString(),
       createdAt: parseDate(json['createdAt']),
+      team: json['team'] is Map<String, dynamic> ? Map<String, dynamic>.from(json['team']) : null,
     );
   }
 
@@ -111,9 +115,11 @@ class ParticipationModel extends Equatable {
       'paymentStatus': paymentStatus,
       'paymentId': paymentId,
       'orderId': orderId,
+      if (team != null) 'team': team,
     };
   }
 
   @override
-  List<Object?> get props => [id, studentId, eventId, externalEmail, status, qrCode, attendedAt];
+  List<Object?> get props => [id, studentId, eventId, externalEmail, status, qrCode, attendedAt, team];
 }
+

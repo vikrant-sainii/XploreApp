@@ -29,6 +29,8 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> loginAdmin(String email, String password) async {
+    String? lastErrorMessage;
+
     // 1. Try primary admin route (/api/admin/login)
     try {
       final urlAdmin = ApiConfig.getUri('/admin/login');
@@ -50,7 +52,11 @@ class AuthService {
         await _secureStorageService.saveToken('admin_token_${DateTime.now().millisecondsSinceEpoch}');
       }
       return {'success': true, 'data': data};
-    } catch (_) {}
+    } on ApiException catch (e) {
+      lastErrorMessage = e.message;
+    } catch (e) {
+      lastErrorMessage = e.toString();
+    }
 
     // 2. Try /api/auth/login/admin route
     try {
@@ -71,14 +77,18 @@ class AuthService {
         await _secureStorageService.saveToken(token.toString());
       }
       return {'success': true, 'data': data};
-    } catch (_) {}
+    } on ApiException catch (e) {
+      lastErrorMessage = e.message;
+    } catch (e) {
+      lastErrorMessage = e.toString();
+    }
 
     // 3. Fallback to student login for Club Heads / Coordinators
     final studentRes = await loginStudent(email, password);
     if (studentRes['success'] == true) {
       return studentRes;
     }
-    return {'success': false, 'message': 'Invalid Admin Credentials'};
+    return {'success': false, 'message': studentRes['message'] ?? lastErrorMessage ?? 'Invalid Admin Credentials'};
   }
 
   Future<Map<String, dynamic>> registerStudent({
@@ -125,15 +135,36 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> registerExternal(String name, String email) async {
+  Future<Map<String, dynamic>> registerExternal({
+    required String name,
+    required String email,
+    String? password,
+    String? collegeName,
+    String? phone,
+    String? program,
+    dynamic year,
+  }) async {
     final url = ApiConfig.getUri('/auth/register/external');
     try {
+      final body = <String, dynamic>{
+        'name': name.trim(),
+        'email': email.trim(),
+        if (password != null && password.isNotEmpty) 'password': password,
+        if (collegeName != null && collegeName.isNotEmpty) 'collegeName': collegeName.trim(),
+        if (phone != null && phone.isNotEmpty) 'phone': phone.trim(),
+        if (program != null && program.isNotEmpty) 'program': program.trim(),
+        if (year != null) 'graduationYear': int.tryParse(year.toString()) ?? year,
+      };
+
       final response = await http.post(
         url,
         headers: await ApiConfig.getHeaders(requireAuth: false),
-        body: jsonEncode({'name': name.trim(), 'email': email.trim()}),
+        body: jsonEncode(body),
       );
       final data = ApiConfig.handleResponse(response);
+      if (data['token'] != null) {
+        await _secureStorageService.saveToken(data['token'].toString());
+      }
       return {'success': true, 'data': data};
     } on ApiException catch (e) {
       return {'success': false, 'message': e.message};

@@ -76,4 +76,33 @@ class UserService {
     }
     return getMe();
   }
+
+  Future<List<UserModel>> searchUsers(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return [];
+
+    final url = ApiConfig.getUri('/users/search?query=${Uri.encodeComponent(trimmed)}');
+    final response = await http.get(
+      url,
+      headers: await ApiConfig.getHeaders(requireAuth: true),
+    );
+
+    final data = ApiConfig.handleResponse(response);
+    List rawList = [];
+    if (data is List) {
+      rawList = data;
+    } else if (data is Map<String, dynamic>) {
+      if (data['users'] is List) {
+        rawList = data['users'] as List;
+      } else if (data['data'] is List) {
+        rawList = data['data'] as List;
+      }
+    }
+
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map((u) => UserModel.fromJson(u))
+        .toList();
+  }
 }
+

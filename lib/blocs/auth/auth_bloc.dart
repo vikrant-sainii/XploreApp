@@ -132,9 +132,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegisterExternalRequested>((event, emit) async {
       emit(AuthLoading());
       try {
-        final result = await _authService.registerExternal(event.name, event.email);
+        final result = await _authService.registerExternal(
+          name: event.name,
+          email: event.email,
+          password: event.password,
+          collegeName: event.collegeName,
+          phone: event.phone,
+          program: event.program,
+          year: event.year,
+        );
         if (result['success'] == true) {
-          emit(const AuthPasswordResetSuccess('Registration successful. OTP sent for external login.'));
+          if (result['data']?['token'] != null) {
+            try {
+              final user = await _userService.getMe();
+              _currentUser = user;
+              emit(Authenticated(user));
+              return;
+            } catch (_) {}
+          }
+          emit(RegisterSuccess(result['data']?['message'] ?? 'External registration successful! Please login.'));
         } else {
           emit(AuthError(result['message'] ?? 'External registration failed'));
         }

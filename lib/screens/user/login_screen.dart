@@ -8,9 +8,6 @@ import 'package:xplore_app/screens/unused/forgot_password_roll_screen.dart';
 import 'package:xplore_app/blocs/auth/auth_bloc.dart';
 import 'package:xplore_app/blocs/club/club_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
-import 'package:xplore_app/services/api_config.dart';
-
-enum LoginMode { student, admin, external }
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,50 +19,34 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _otpController = TextEditingController();
   final TextEditingController _twoFactorOtpController = TextEditingController();
 
-  LoginMode _selectedMode = LoginMode.student;
   bool _obscurePassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _otpController.dispose();
     _twoFactorOtpController.dispose();
     super.dispose();
   }
 
   void _handleLogin() {
     final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
     if (email.isEmpty) {
       _showSnackBar("Please enter your email");
       return;
     }
-
-    if (_selectedMode == LoginMode.student) {
-      final password = _passwordController.text;
-      if (password.isEmpty) {
-        _showSnackBar("Please enter your password");
-        return;
-      }
-      context.read<AuthBloc>().add(LoginRequested(email, password, isAdmin: false));
-    } else if (_selectedMode == LoginMode.admin) {
-      final password = _passwordController.text;
-      if (password.isEmpty) {
-        _showSnackBar("Please enter your admin password");
-        return;
-      }
-      context.read<AuthBloc>().add(LoginRequested(email, password, isAdmin: true));
-    } else if (_selectedMode == LoginMode.external) {
-      final otp = _otpController.text.trim();
-      if (otp.isEmpty) {
-        _showSnackBar("Please enter the 6-digit access code");
-        return;
-      }
-      context.read<AuthBloc>().add(ExternalLoginRequested(email, otp));
+    if (password.isEmpty) {
+      _showSnackBar("Please enter your password");
+      return;
     }
+
+    context.read<AuthBloc>().add(
+          LoginRequested(email, password),
+        );
   }
 
   void _show2FADialog(String email) {
@@ -74,11 +55,13 @@ class _LoginScreenState extends State<LoginScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        title: const Text("Two-Factor Authentication", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Two-Factor Authentication",
+            style: TextStyle(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Enter the 2FA OTP code sent to $email:", style: const TextStyle(fontSize: 14)),
+            Text("Enter the 2FA OTP code sent to $email:",
+                style: const TextStyle(fontSize: 14)),
             const SizedBox(height: 16),
             TextField(
               controller: _twoFactorOtpController,
@@ -102,7 +85,8 @@ class _LoginScreenState extends State<LoginScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF191C32),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)),
             ),
             child: const Text("Verify", style: TextStyle(color: Colors.white)),
           ),
@@ -112,10 +96,33 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showSnackBar(String message, {bool isError = true}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? Colors.red.shade700 : Colors.green.shade700,
+        behavior: SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
@@ -125,7 +132,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Authenticated) {
-          // Preload clubs & events for the authenticated user
           context.read<ClubBloc>().add(FetchUserClubs(user: state.user));
           context.read<EventBloc>().add(FetchAllEvents(userId: state.user.id));
           final roleUpper = state.user.role.toUpperCase();
@@ -145,8 +151,8 @@ class _LoginScreenState extends State<LoginScreen> {
               MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
             );
           } else if (state.user.isClubAccount ||
-                     roleUpper == 'CLUB_ACCOUNT' ||
-                     userTypeLower == 'club_account') {
+              roleUpper == 'CLUB_ACCOUNT' ||
+              userTypeLower == 'club_account') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => const HeadPortalScreen()),
@@ -169,188 +175,187 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: const Color.fromRGBO(246, 247, 250, 1),
           body: Stack(
             children: [
-              ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  const SizedBox(height: 40),
-                  Image.asset(
-                    "assets/screen2.png",
-                    height: 220,
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+              SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      const SizedBox(height: 4),
+                      // Logo
+                      Image.asset(
+                        "assets/screen2.png",
+                        height: 200,
+                      ),
                       const Text(
                         "LOGIN",
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 30,
+                          fontSize: 26,
                           color: Color(0xFF1D1049),
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.settings, color: Color(0xFFF7931A), size: 22),
-                        tooltip: "Server Settings",
-                        onPressed: () => ApiConfig.showServerConfigDialog(context),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Mode Selector Tabs (Student / Admin / External)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: Row(
-                        children: [
-                          _buildModeTab("Student", LoginMode.student),
-                          _buildModeTab("Admin / Lead", LoginMode.admin),
-                          _buildModeTab("Guest", LoginMode.external),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 25),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: 60,
-                          child: TextField(
-                            controller: _emailController,
-                            cursorColor: const Color(0xFF1D1049),
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: myDecoration(
-                              _selectedMode == LoginMode.student
-                                  ? "NITJ Email (@nitj.ac.in)"
-                                  : (_selectedMode == LoginMode.admin
-                                      ? "Admin / Faculty Email"
-                                      : "Guest Email"),
-                              Icons.email,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (_selectedMode != LoginMode.external)
-                          SizedBox(
-                            height: 60,
-                            child: TextField(
-                              controller: _passwordController,
-                              cursorColor: const Color(0xFF1D1049),
-                              obscureText: _obscurePassword,
-                              decoration: myDecoration(
-                                "Password",
-                                Icons.lock,
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                    color: Colors.grey,
-                                    size: 20,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                              ),
-                              onSubmitted: (_) => _handleLogin(),
-                            ),
-                          )
-                        else
-                          SizedBox(
-                            height: 60,
-                            child: TextField(
-                              controller: _otpController,
-                              cursorColor: const Color(0xFF1D1049),
-                              keyboardType: TextInputType.number,
-                              decoration: myDecoration(
-                                "6-Digit Access Code / OTP",
-                                Icons.vpn_key,
-                              ),
-                              onSubmitted: (_) => _handleLogin(),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25),
-                    child: ElevatedButton(
-                      onPressed: _handleLogin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF191C32),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(40),
-                        ),
-                        minimumSize: const Size.fromHeight(65),
-                      ),
-                      child: Text(
-                        _selectedMode == LoginMode.external ? "LOGIN WITH OTP" : "LOGIN",
-                        style: const TextStyle(
-                          color: Colors.white,
+                      const SizedBox(height: 16),
+                      // EMAIL ADDRESS
+                      const Text(
+                        "EMAIL ADDRESS",
+                        style: TextStyle(
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          letterSpacing: 0.8,
+                          color: Colors.black87,
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_selectedMode != LoginMode.external)
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        height: 52,
+                        child: TextField(
+                          controller: _emailController,
+                          cursorColor: const Color(0xFF1D1049),
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: myDecoration(
+                            "Enter your email address",
+                            Icons.email,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      // PASSWORD + Forgot password
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "PASSWORD",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const ForgotPasswordRollScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              "Forgot password?",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF0088FF),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        height: 52,
+                        child: TextField(
+                          controller: _passwordController,
+                          cursorColor: const Color(0xFF1D1049),
+                          obscureText: _obscurePassword,
+                          decoration: myDecoration(
+                            "••••••••",
+                            Icons.lock,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: Colors.grey,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                          ),
+                          onSubmitted: (_) => _handleLogin(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Sign In button
+                      ElevatedButton(
+                        onPressed: _handleLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF191C32),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40),
+                          ),
+                          minimumSize: const Size.fromHeight(54),
+                        ),
+                        child: const Text(
+                          "Sign In  →",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Divider with label
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: Colors.grey.shade400)),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              "New on Campusnode?",
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Expanded(child: Divider(color: Colors.grey.shade400)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Register Now button
+                      OutlinedButton(
+                        onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const ForgotPasswordRollScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const RegisterScreen()),
                           );
                         },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(
+                              color: Color(0xFF191C32), width: 1.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40),
+                          ),
+                          minimumSize: const Size.fromHeight(50),
+                        ),
                         child: const Text(
-                          "FORGOT PASSWORD?",
+                          "Register Now",
                           style: TextStyle(
-                            color: Color(0xFF000000),
-                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF191C32),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
                           ),
                         ),
                       ),
-                    ),
-                  const SizedBox(height: 12),
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                        );
-                      },
-                      child: const Text(
-                        "DON'T HAVE AN ACCOUNT? REGISTER",
-                        style: TextStyle(
-                          color: Color(0xFF000000),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                      const SizedBox(height: 24),
+                    ],
                   ),
-                  const SizedBox(height: 30),
-                ],
+                ),
               ),
+              // Loading overlay
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
                   if (state is AuthLoading) {
@@ -370,34 +375,10 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-  Widget _buildModeTab(String title, LoginMode mode) {
-    final isSelected = _selectedMode == mode;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedMode = mode),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF191C32) : Colors.transparent,
-            borderRadius: BorderRadius.circular(25),
-          ),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey.shade700,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
-InputDecoration myDecoration(String hintText, IconData youricon, {Widget? suffixIcon}) {
+InputDecoration myDecoration(String hintText, IconData youricon,
+    {Widget? suffixIcon}) {
   return InputDecoration(
     contentPadding: const EdgeInsets.symmetric(vertical: 20),
     prefixIcon: Container(

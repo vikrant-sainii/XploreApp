@@ -144,10 +144,6 @@ class AuthGate extends StatelessWidget {
             return const HeadPortalScreen();
           }
           return const UserPortalScreen();
-        } else if (state is AuthLoading && state is! AuthNeeds2FA) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
         }
         return const LoginScreen();
       },
