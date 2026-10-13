@@ -144,18 +144,111 @@ class AuthService {
     String? program,
     dynamic year,
   }) async {
-    final url = ApiConfig.getUri('/auth/register/external');
+    final yearVal = year != null ? (int.tryParse(year.toString()) ?? year) : null;
+    final body = <String, dynamic>{
+      'name': name.trim(),
+      'email': email.trim(),
+      if (password != null && password.isNotEmpty) 'password': password,
+      if (collegeName != null && collegeName.isNotEmpty) 'collegeName': collegeName.trim(),
+      if (collegeName != null && collegeName.isNotEmpty) 'college': collegeName.trim(),
+      if (phone != null && phone.isNotEmpty) 'phone': phone.trim(),
+      if (program != null && program.isNotEmpty) 'program': program.trim(),
+      if (yearVal != null) 'graduationYear': yearVal,
+      if (yearVal != null) 'year': yearVal,
+      'role': 'EXTERNAL',
+      'userType': 'external',
+    };
+
+    // 1. Try primary external endpoint
     try {
-      final body = <String, dynamic>{
+      final url = ApiConfig.getUri('/auth/register/external');
+      final response = await http.post(
+        url,
+        headers: await ApiConfig.getHeaders(requireAuth: false),
+        body: jsonEncode(body),
+      );
+      final data = ApiConfig.handleResponse(response);
+      if (data['token'] != null) {
+        await _secureStorageService.saveToken(data['token'].toString());
+      }
+      return {'success': true, 'data': data};
+    } on ApiException catch (e) {
+      if (e.statusCode != 404) {
+        return {'success': false, 'message': e.message};
+      }
+    } catch (_) {}
+
+    // 2. Fallback to /auth/register/student
+    try {
+      final url = ApiConfig.getUri('/auth/register/student');
+      final fallbackBody = {
         'name': name.trim(),
         'email': email.trim(),
         if (password != null && password.isNotEmpty) 'password': password,
-        if (collegeName != null && collegeName.isNotEmpty) 'collegeName': collegeName.trim(),
-        if (phone != null && phone.isNotEmpty) 'phone': phone.trim(),
-        if (program != null && program.isNotEmpty) 'program': program.trim(),
-        if (year != null) 'graduationYear': int.tryParse(year.toString()) ?? year,
+        'program': 'OTHER',
+        'branch': program ?? 'General',
+        if (yearVal != null) 'year': yearVal,
+        if (collegeName != null) 'collegeName': collegeName.trim(),
       };
+      final response = await http.post(
+        url,
+        headers: await ApiConfig.getHeaders(requireAuth: false),
+        body: jsonEncode(fallbackBody),
+      );
+      final data = ApiConfig.handleResponse(response);
+      if (data['token'] != null) {
+        await _secureStorageService.saveToken(data['token'].toString());
+      }
+      return {'success': true, 'data': data};
+    } on ApiException catch (e) {
+      return {'success': false, 'message': e.message};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
 
+
+  Future<Map<String, dynamic>> registerFaculty({
+    required String name,
+    required String email,
+    required String password,
+    required String department,
+    String? designation,
+  }) async {
+    final body = <String, dynamic>{
+      'name': name.trim(),
+      'email': email.trim(),
+      'password': password,
+      'department': department.trim(),
+      'branch': department.trim(),
+      'program': 'FACULTY',
+      'role': 'FACULTY',
+      if (designation != null && designation.trim().isNotEmpty)
+        'designation': designation.trim(),
+    };
+
+    // 1. Try primary faculty endpoint (/auth/register/faculty)
+    try {
+      final url = ApiConfig.getUri('/auth/register/faculty');
+      final response = await http.post(
+        url,
+        headers: await ApiConfig.getHeaders(requireAuth: false),
+        body: jsonEncode(body),
+      );
+      final data = ApiConfig.handleResponse(response);
+      if (data['token'] != null) {
+        await _secureStorageService.saveToken(data['token'].toString());
+      }
+      return {'success': true, 'data': data};
+    } on ApiException catch (e) {
+      if (e.statusCode != 404) {
+        return {'success': false, 'message': e.message};
+      }
+    } catch (_) {}
+
+    // 2. Fallback to /auth/register/student endpoint
+    try {
+      final url = ApiConfig.getUri('/auth/register/student');
       final response = await http.post(
         url,
         headers: await ApiConfig.getHeaders(requireAuth: false),
@@ -213,6 +306,68 @@ class AuthService {
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
+  }
+
+  /// Smart multi-endpoint login: tries faculty → external → student in order
+  /// so that any registered user type can log in from the single login screen.
+  Future<Map<String, dynamic>> login(String email, String password,
+      {bool isAdmin = false}) async {
+    if (isAdmin) {
+      return loginAdmin(email, password);
+    }
+
+    String? lastError;
+
+    // 1. Try /auth/login/faculty (for faculty registered accounts)
+    try {
+      final url = ApiConfig.getUri('/auth/login/faculty');
+      final response = await http.post(
+        url,
+        headers: await ApiConfig.getHeaders(requireAuth: false),
+        body: jsonEncode({'email': email.trim(), 'password': password}),
+      );
+      final data = ApiConfig.handleResponse(response);
+      final token = data['token'] ?? data['access_token'];
+      if (token != null) {
+        await _secureStorageService.saveToken(token.toString());
+      }
+      return {'success': true, 'data': data};
+    } on ApiException catch (e) {
+      if (e.statusCode != 404 && e.statusCode != 401) {
+        return {'success': false, 'message': e.message};
+      }
+      lastError = e.message;
+    } catch (_) {}
+
+    // 2. Try /auth/login/external (for externals registered with password)
+    try {
+      final url = ApiConfig.getUri('/auth/login/external');
+      final response = await http.post(
+        url,
+        headers: await ApiConfig.getHeaders(requireAuth: false),
+        body: jsonEncode({'email': email.trim(), 'password': password}),
+      );
+      final data = ApiConfig.handleResponse(response);
+      final token = data['token'] ?? data['access_token'];
+      if (token != null) {
+        await _secureStorageService.saveToken(token.toString());
+      }
+      return {'success': true, 'data': data};
+    } on ApiException catch (e) {
+      if (e.statusCode != 404 && e.statusCode != 401) {
+        return {'success': false, 'message': e.message};
+      }
+      lastError = e.message;
+    } catch (_) {}
+
+    // 3. Fallback to /auth/login/student (default for students and any unified endpoint)
+    final studentRes = await loginStudent(email, password);
+    if (studentRes['success'] == true) return studentRes;
+
+    return {
+      'success': false,
+      'message': studentRes['message'] ?? lastError ?? 'Invalid credentials',
+    };
   }
 
   Future<Map<String, dynamic>> verifyEmail(String token) async {
@@ -284,14 +439,5 @@ class AuthService {
 
   Future<void> logout() async {
     await _secureStorageService.deleteAll();
-  }
-
-  // Backwards compatible login method
-  Future<Map<String, dynamic>> login(String email, String password, {bool isAdmin = false}) async {
-    if (isAdmin) {
-      return loginAdmin(email, password);
-    } else {
-      return loginStudent(email, password);
-    }
   }
 }

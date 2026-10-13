@@ -17,16 +17,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _rollNoController = TextEditingController();
   final TextEditingController _collegeNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _externalProgramController = TextEditingController();
+  final TextEditingController _designationController = TextEditingController();
 
   RegisterMode _currentMode = RegisterMode.student;
   String _selectedProgram = 'BTECH';
   String? _selectedBranch;
   String? _selectedGradYear;
+  String? _selectedDepartment;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _agreedToTerms = false;
+
+  final List<String> _facultyDepartments = [
+    'Computer Science & Engineering',
+    'Information Technology',
+    'Electronics & Communication Engineering',
+    'Electrical Engineering',
+    'Mechanical Engineering',
+    'Civil Engineering',
+    'Instrumentation & Control Engineering',
+    'Chemical Engineering',
+    'Textile Technology',
+    'Biotechnology',
+    'Industrial & Production Engineering',
+    'Mathematics',
+    'Physics',
+    'Chemistry',
+    'Humanities & Management',
+  ];
 
   // Map of program -> list of {value: API code, label: display name}
   final Map<String, List<Map<String, String>>> _branchesPerProgram = {
@@ -88,9 +111,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _rollNoController.dispose();
     _collegeNameController.dispose();
     _phoneController.dispose();
+    _externalProgramController.dispose();
+    _designationController.dispose();
     super.dispose();
   }
 
@@ -145,16 +171,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ));
     } else if (_currentMode == RegisterMode.external) {
       final collegeName = _collegeNameController.text.trim();
+      final program = _externalProgramController.text.trim();
       final phone = _phoneController.text.trim();
+
+      if (collegeName.isEmpty) {
+        _showSnackBar("Please enter your College / University Name");
+        return;
+      }
+
+      if (program.isEmpty) {
+        _showSnackBar("Please enter your Program / Degree");
+        return;
+      }
+
+      if (_selectedGradYear == null) {
+        _showSnackBar("Please select your Graduation Year");
+        return;
+      }
+
+      if (password.length < 6) {
+        _showSnackBar("Password must be at least 6 characters");
+        return;
+      }
+
       final yearNum = int.tryParse(_selectedGradYear ?? '2026');
 
       context.read<AuthBloc>().add(RegisterExternalRequested(
             name: name,
             email: email,
             password: password.isNotEmpty ? password : null,
-            collegeName: collegeName.isNotEmpty ? collegeName : null,
+            collegeName: collegeName,
             phone: phone.isNotEmpty ? phone : null,
-            program: _selectedProgram,
+            program: program,
             year: yearNum,
           ));
     } else {
@@ -164,14 +212,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
 
-      context.read<AuthBloc>().add(RegisterStudentRequested(
+      if (_selectedDepartment == null || _selectedDepartment!.isEmpty) {
+        _showSnackBar("Please select your Department");
+        return;
+      }
+
+      if (password.length < 6) {
+        _showSnackBar("Password must be at least 6 characters");
+        return;
+      }
+
+      final confirmPassword = _confirmPasswordController.text;
+      if (password != confirmPassword) {
+        _showSnackBar("Passwords do not match");
+        return;
+      }
+
+      final designation = _designationController.text.trim();
+
+      context.read<AuthBloc>().add(RegisterFacultyRequested(
             name: name,
             email: email,
             password: password,
-            program: 'FACULTY',
-            rollNo: null,
-            branch: _selectedBranch ?? 'Faculty',
-            year: null,
+            department: _selectedDepartment!,
+            designation: designation.isNotEmpty ? designation : null,
           ));
     }
   }
@@ -217,8 +281,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
+                        children: [
+                          const Text(
                             "Non-Editable Fields",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
@@ -227,8 +291,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           Text(
-                            "NITJian Academic Profile",
-                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                            _currentMode == RegisterMode.faculty
+                                ? "NITJian Faculty Profile"
+                                : (_currentMode == RegisterMode.external
+                                    ? "External Participant Profile"
+                                    : "NITJian Academic Profile"),
+                            style: const TextStyle(fontSize: 11, color: Colors.grey),
                           ),
                         ],
                       ),
@@ -266,15 +334,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildLockedItem("Roll Number", "Official institute roll number"),
-              _buildLockedItem(
-                  "College Email", "Official @nitj.ac.in email address"),
-              _buildLockedItem(
-                  "Academic Program", "Your enrolled degree program"),
-              _buildLockedItem(
-                  "Branch / Department", "Your assigned department"),
-              _buildLockedItem(
-                  "Expected Graduation Year", "Your estimated completion year"),
+              if (_currentMode == RegisterMode.student) ...[
+                _buildLockedItem("Roll Number", "Official institute roll number"),
+                _buildLockedItem(
+                    "College Email", "Official @nitj.ac.in email address"),
+                _buildLockedItem(
+                    "Academic Program", "Your enrolled degree program"),
+                _buildLockedItem(
+                    "Branch / Department", "Your assigned department"),
+                _buildLockedItem(
+                    "Expected Graduation Year", "Your estimated completion year"),
+              ] else if (_currentMode == RegisterMode.faculty) ...[
+                _buildLockedItem("Institutional Email", "Official @nitj.ac.in email address"),
+                _buildLockedItem("Department", "Assigned academic department"),
+                _buildLockedItem("Designation", "Current institute designation"),
+                _buildLockedItem("Role / Category", "Verified faculty profile"),
+                _buildLockedItem("Academic Institution", "Dr B R Ambedkar NIT Jalandhar"),
+              ] else ...[
+                _buildLockedItem("College / University Name", "Your parent university or college"),
+                _buildLockedItem("Institutional Student Email", "Verified institutional email domain"),
+                _buildLockedItem("Program / Degree", "Enrolled degree program"),
+                _buildLockedItem("Graduation Year", "Target year of course completion"),
+              ],
               const SizedBox(height: 16),
               const Text(
                 "EDITABLE LATER",
@@ -462,7 +543,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     _currentMode == RegisterMode.student
                         ? "NITJ Student Registration"
                         : (_currentMode == RegisterMode.faculty
-                            ? "NITJ Faculty Registration"
+                            ? "Faculty Registration"
                             : "External Registration"),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
@@ -481,20 +562,326 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Full Name *
-                  _buildLabel("Full Name *"),
-                  SizedBox(
-                    height: 52,
-                    child: TextField(
-                      controller: _nameController,
-                      cursorColor: const Color(0xFF1D1049),
-                      decoration: myDecoration("e.g Himanshu", Icons.person),
+                  // 1. External Mode Fields
+                  if (_currentMode == RegisterMode.external) ...[
+                    // Row: Full Name * & Phone Number (Optional)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel("Full Name *"),
+                              SizedBox(
+                                height: 52,
+                                child: TextField(
+                                  controller: _nameController,
+                                  cursorColor: const Color(0xFF1D1049),
+                                  decoration:
+                                      _inputDeco("Enter your full name"),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel("Phone Number (Optional)"),
+                              SizedBox(
+                                height: 52,
+                                child: TextField(
+                                  controller: _phoneController,
+                                  cursorColor: const Color(0xFF1D1049),
+                                  keyboardType: TextInputType.phone,
+                                  decoration: _inputDeco("e.g. 9876543210"),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
-                  // Student Specific Fields
-                  if (_currentMode == RegisterMode.student) ...[
+                    // College / University Name *
+                    _buildLabel("College / University Name *"),
+                    SizedBox(
+                      height: 52,
+                      child: TextField(
+                        controller: _collegeNameController,
+                        cursorColor: const Color(0xFF1D1049),
+                        decoration:
+                            _inputDeco("e.g. Delhi Technological University"),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Row: Program / Degree * & Graduation Year *
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel("Program / Degree *"),
+                              SizedBox(
+                                height: 52,
+                                child: TextField(
+                                  controller: _externalProgramController,
+                                  cursorColor: const Color(0xFF1D1049),
+                                  decoration:
+                                      _inputDeco("e.g. B.Tech Computer Science"),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel("Graduation Year *"),
+                              DropdownButtonFormField<String>(
+                                initialValue: _selectedGradYear,
+                                isExpanded: true,
+                                hint: const Text("Select Year",
+                                    style: TextStyle(
+                                        fontSize: 13, color: Colors.grey)),
+                                decoration: _inputDeco("Select Year"),
+                                items: _graduationYears
+                                    .map((y) => DropdownMenuItem(
+                                        value: y,
+                                        child: Text(y,
+                                            style: const TextStyle(
+                                                fontSize: 13))))
+                                    .toList(),
+                                onChanged: (val) =>
+                                    setState(() => _selectedGradYear = val),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Institutional Student Email *
+                    _buildLabel("Institutional Student Email *"),
+                    SizedBox(
+                      height: 52,
+                      child: TextField(
+                        controller: _emailController,
+                        cursorColor: const Color(0xFF1D1049),
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: _inputDeco("e.g. @ac.in , @edu.in"),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Password *
+                    _buildLabel("Password *"),
+                    SizedBox(
+                      height: 52,
+                      child: TextField(
+                        controller: _passwordController,
+                        cursorColor: const Color(0xFF1D1049),
+                        obscureText: _obscurePassword,
+                        decoration: _inputDeco(
+                          "Create a secure password",
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ]
+
+                  // 2. Faculty Mode Fields
+                  else if (_currentMode == RegisterMode.faculty) ...[
+                    // Full Name *
+                    _buildLabel("Full Name *"),
+                    SizedBox(
+                      height: 52,
+                      child: TextField(
+                        controller: _nameController,
+                        cursorColor: const Color(0xFF1D1049),
+                        decoration: _inputDeco("e.g. Dr. Gopal Krishnan",
+                            icon: Icons.person),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Institutional Email (@nitj.ac.in) *
+                    _buildLabel("Institutional Email (@nitj.ac.in) *"),
+                    SizedBox(
+                      height: 52,
+                      child: TextField(
+                        controller: _emailController,
+                        cursorColor: const Color(0xFF1D1049),
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: _inputDeco("e.g. krishnang@nitj.ac.in",
+                            icon: Icons.email),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Row: Department * & Designation (optional)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel("Department *"),
+                              DropdownButtonFormField<String>(
+                                initialValue: _selectedDepartment,
+                                isExpanded: true,
+                                hint: const Text("Select Department",
+                                    style: TextStyle(
+                                        fontSize: 13, color: Colors.grey)),
+                                decoration: _inputDeco("Select Department"),
+                                items: _facultyDepartments
+                                    .map((d) => DropdownMenuItem(
+                                          value: d,
+                                          child: Text(d,
+                                              overflow:
+                                                  TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                  fontSize: 13)),
+                                        ))
+                                    .toList(),
+                                onChanged: (val) => setState(
+                                    () => _selectedDepartment = val),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel("Designation (optional)"),
+                              SizedBox(
+                                height: 52,
+                                child: TextField(
+                                  controller: _designationController,
+                                  cursorColor: const Color(0xFF1D1049),
+                                  decoration:
+                                      _inputDeco("e.g. Assistant Professor"),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Row: Password * & Confirm Password *
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel("Password *"),
+                              SizedBox(
+                                height: 52,
+                                child: TextField(
+                                  controller: _passwordController,
+                                  cursorColor: const Color(0xFF1D1049),
+                                  obscureText: _obscurePassword,
+                                  decoration: _inputDeco(
+                                    "Create a password",
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color: Colors.grey,
+                                        size: 20,
+                                      ),
+                                      onPressed: () => setState(() =>
+                                          _obscurePassword =
+                                              !_obscurePassword),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel("Confirm Password *"),
+                              SizedBox(
+                                height: 52,
+                                child: TextField(
+                                  controller: _confirmPasswordController,
+                                  cursorColor: const Color(0xFF1D1049),
+                                  obscureText: _obscureConfirmPassword,
+                                  decoration: _inputDeco(
+                                    "Re-enter password",
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscureConfirmPassword
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color: Colors.grey,
+                                        size: 20,
+                                      ),
+                                      onPressed: () => setState(() =>
+                                          _obscureConfirmPassword =
+                                              !_obscureConfirmPassword),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                  ]
+
+                  // 3. Student Mode Fields
+                  else ...[
+                    // Full Name *
+                    _buildLabel("Full Name *"),
+                    SizedBox(
+                      height: 52,
+                      child: TextField(
+                        controller: _nameController,
+                        cursorColor: const Color(0xFF1D1049),
+                        decoration:
+                            _inputDeco("e.g Himanshu", icon: Icons.person),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Roll Number *
                     _buildLabel("Roll Number *"),
                     SizedBox(
                       height: 52,
@@ -502,13 +889,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _rollNoController,
                         cursorColor: const Color(0xFF1D1049),
                         keyboardType: TextInputType.number,
-                        decoration: myDecoration("e.g. 241050148", Icons.badge),
+                        decoration:
+                            _inputDeco("e.g. 241050148", icon: Icons.badge),
                       ),
                     ),
                     const SizedBox(height: 10),
 
                     // Program & Branch Dropdowns Row
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Column(
@@ -518,8 +907,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               DropdownButtonFormField<String>(
                                 initialValue: _selectedProgram,
                                 isExpanded: true,
-                                decoration: myDecoration(
-                                    "Select Program", Icons.school),
+                                decoration: _inputDeco("Select Program",
+                                    icon: Icons.school),
                                 items: const [
                                   DropdownMenuItem(
                                       value: "BTECH",
@@ -564,17 +953,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 initialValue: _selectedBranch,
                                 isExpanded: true,
                                 hint: const Text("Select branch",
-                                    style: TextStyle(fontSize: 13)),
-                                decoration: myDecoration(
-                                    "Select Branch", Icons.account_tree),
+                                    style: TextStyle(
+                                        fontSize: 13, color: Colors.grey)),
+                                decoration: _inputDeco("Select Branch",
+                                    icon: Icons.account_tree),
                                 items: availableBranches
                                     .map((b) => DropdownMenuItem(
                                           value: b['value']!,
                                           child: Text(
                                             b['label']!,
                                             overflow: TextOverflow.ellipsis,
-                                            style:
-                                                const TextStyle(fontSize: 13),
+                                            style: const TextStyle(
+                                                fontSize: 13),
                                           ),
                                         ))
                                     .toList(),
@@ -588,102 +978,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 10),
 
+                    // Expected Graduation Year *
                     _buildLabel("Expected Graduation Year *"),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedGradYear,
                       isExpanded: true,
                       hint: const Text("Select Graduation Year",
-                          style: TextStyle(fontSize: 13)),
-                      decoration: myDecoration(
-                          "Select Graduation Year", Icons.calendar_today),
+                          style: TextStyle(fontSize: 13, color: Colors.grey)),
+                      decoration: _inputDeco("Select Graduation Year",
+                          icon: Icons.calendar_today),
                       items: _graduationYears
-                          .map(
-                              (y) => DropdownMenuItem(value: y, child: Text(y)))
+                          .map((y) => DropdownMenuItem(value: y, child: Text(y)))
                           .toList(),
                       onChanged: (val) =>
                           setState(() => _selectedGradYear = val),
                     ),
                     const SizedBox(height: 10),
-                  ],
 
-                  // External Specific Fields
-                  if (_currentMode == RegisterMode.external) ...[
-                    _buildLabel("College / Organization Name *"),
+                    // College Email *
+                    _buildLabel("College Email *"),
                     SizedBox(
                       height: 52,
                       child: TextField(
-                        controller: _collegeNameController,
+                        controller: _emailController,
                         cursorColor: const Color(0xFF1D1049),
-                        decoration: myDecoration(
-                            "e.g. IIT Delhi / XYZ College", Icons.business),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildLabel("Contact Phone Number"),
-                    SizedBox(
-                      height: 52,
-                      child: TextField(
-                        controller: _phoneController,
-                        cursorColor: const Color(0xFF1D1049),
-                        keyboardType: TextInputType.phone,
+                        keyboardType: TextInputType.emailAddress,
                         decoration:
-                            myDecoration("e.g. +91 9876543210", Icons.phone),
+                            _inputDeco("e.g. @nitj.ac.in", icon: Icons.email),
                       ),
                     ),
                     const SizedBox(height: 10),
-                  ],
 
-                  // Email Field
-                  _buildLabel(_currentMode == RegisterMode.external
-                      ? "Email Address *"
-                      : "College Email *"),
-                  SizedBox(
-                    height: 52,
-                    child: TextField(
-                      controller: _emailController,
-                      cursorColor: const Color(0xFF1D1049),
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: myDecoration(
-                        _currentMode == RegisterMode.external
-                            ? "e.g. your.email@domain.com"
-                            : "e.g. @nitj.ac.in",
-                        Icons.email,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Password Field
-                  _buildLabel("Password *"),
-                  SizedBox(
-                    height: 52,
-                    child: TextField(
-                      controller: _passwordController,
-                      cursorColor: const Color(0xFF1D1049),
-                      obscureText: _obscurePassword,
-                      decoration: myDecoration(
-                        "Create a secure password",
-                        Icons.lock,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: Colors.grey,
-                            size: 20,
+                    // Password *
+                    _buildLabel("Password *"),
+                    SizedBox(
+                      height: 52,
+                      child: TextField(
+                        controller: _passwordController,
+                        cursorColor: const Color(0xFF1D1049),
+                        obscureText: _obscurePassword,
+                        decoration: _inputDeco(
+                          "Create a secure password",
+                          icon: Icons.lock,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                           ),
-                          onPressed: () => setState(
-                              () => _obscurePassword = !_obscurePassword),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
+                    const SizedBox(height: 14),
+                  ],
 
-                  // Terms & Conditions + Non-editable fields box
+                  // Terms & Conditions card
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -695,30 +1052,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ],
                     ),
-                    child: Column(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _agreedToTerms,
-                              activeColor: const Color(0xFF191C32),
-                              onChanged: (val) =>
-                                  setState(() => _agreedToTerms = val ?? false),
-                            ),
-                            Expanded(
-                              child: Wrap(
+                        Checkbox(
+                          value: _agreedToTerms,
+                          activeColor: const Color(0xFF0084FF),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4)),
+                          onChanged: (val) =>
+                              setState(() => _agreedToTerms = val ?? false),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Wrap(
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  const Text("I agree to the ",
-                                      style: TextStyle(fontSize: 13)),
+                                  const Text(
+                                    "I agree to the ",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                   GestureDetector(
-                                    onTap: () {
-                                      _showNonEditableFieldsDialog();
-                                    },
+                                    onTap: _showNonEditableFieldsDialog,
                                     child: const Text(
-                                      "Terms & Conditions ",
+                                      "Terms & Conditions",
                                       style: TextStyle(
-                                        color: Color(0xFF0088FF),
+                                        color: Color(0xFF0084FF),
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13,
                                       ),
@@ -726,38 +1093,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                 ],
                               ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.info_outline,
-                                  size: 18, color: Colors.grey),
-                              onPressed: _showNonEditableFieldsDialog,
-                            ),
-                          ],
-                        ),
-                        if (_currentMode == RegisterMode.student) ...[
-                          const Divider(height: 1),
-                          const SizedBox(height: 6),
-                          GestureDetector(
-                            onTap: _showNonEditableFieldsDialog,
-                            child: Row(
-                              children: const [
-                                SizedBox(width: 8),
-                                Icon(Icons.lock_outline,
-                                    size: 15, color: Color(0xFF0088FF)),
-                                SizedBox(width: 6),
-                                Text(
-                                  "Non-editable fields (5)",
-                                  style: TextStyle(
-                                    color: Color(0xFF0088FF),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
+                              const SizedBox(height: 3),
+                              GestureDetector(
+                                onTap: _showNonEditableFieldsDialog,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.lock_outline,
+                                        size: 13, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _currentMode == RegisterMode.external
+                                          ? "4 fields cannot be edited later "
+                                          : "5 fields cannot be edited later ",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    const Text(
+                                      "View",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF0084FF),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                        ],
+                        ),
                       ],
                     ),
                   ),
@@ -767,101 +1134,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ElevatedButton(
                     onPressed: _handleRegister,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF191C32),
-                      minimumSize: const Size.fromHeight(54),
+                      backgroundColor: const Color(0xFF0084FF),
+                      minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(40)),
+                      elevation: 0,
                     ),
-                    child: const Text(
-                      "Create Account",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    child: Center(
+                      child: Text(
+                        _currentMode == RegisterMode.faculty
+                            ? "COMPLETE FACULTY REGISTRATION →"
+                            : "Create Account",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 14),
 
                   // Footer Navigation Links
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Already have an account? ",
-                          style: TextStyle(fontSize: 13)),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const LoginScreen()),
-                          );
-                        },
-                        child: const Text(
-                          "Log in",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF191C32),
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: () =>
-                            setState(() => _currentMode = RegisterMode.faculty),
-                        child: Text(
-                          "Register as Faculty",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _currentMode == RegisterMode.faculty
-                                ? const Color(0xFF191C32)
-                                : Colors.black54,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                      const Text("  •  ",
-                          style: TextStyle(color: Colors.black38)),
-                      GestureDetector(
-                        onTap: () => setState(
-                            () => _currentMode = RegisterMode.external),
-                        child: Text(
-                          "Register as External",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _currentMode == RegisterMode.external
-                                ? const Color(0xFF191C32)
-                                : Colors.black54,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                      if (_currentMode != RegisterMode.student) ...[
-                        const Text("  •  ",
-                            style: TextStyle(color: Colors.black38)),
-                        GestureDetector(
-                          onTap: () => setState(
-                              () => _currentMode = RegisterMode.student),
-                          child: const Text(
-                            "Student Reg",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF191C32),
-                              decoration: TextDecoration.underline,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      runSpacing: 8,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "Already have an account? ",
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.black87),
                             ),
-                          ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const LoginScreen()),
+                                );
+                              },
+                              child: const Text(
+                                "Log in",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0084FF),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                        _buildFooterRightLinks(),
                       ],
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 24),
                 ],
@@ -885,17 +1216,173 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildLabel(String label) {
+    final hasAsterisk = label.endsWith('*');
+    final baseText =
+        hasAsterisk ? label.substring(0, label.length - 1).trim() : label;
     return Padding(
-      padding: const EdgeInsets.only(left: 2, bottom: 4),
-      child: Text(
-        label.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.8,
-          color: Colors.black87,
+      padding: const EdgeInsets.only(left: 4, bottom: 6),
+      child: RichText(
+        text: TextSpan(
+          text: baseText,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF191C32),
+          ),
+          children: hasAsterisk
+              ? const [
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(
+                      color: Color(0xFF0084FF),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ]
+              : const [],
         ),
       ),
     );
+  }
+
+  InputDecoration _inputDeco(
+    String hintText, {
+    IconData? icon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      isDense: true,
+      contentPadding: icon != null
+          ? const EdgeInsets.symmetric(horizontal: 14, vertical: 12)
+          : const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      prefixIcon: icon != null
+          ? Container(
+              margin:
+                  const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                color: Color(0xFFDEF5E9),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 16,
+                color: const Color(0xFF5FC88F),
+              ),
+            )
+          : null,
+      prefixIconConstraints: icon != null
+          ? const BoxConstraints(minWidth: 44, minHeight: 40)
+          : null,
+      suffixIcon: suffixIcon,
+      suffixIconConstraints: suffixIcon != null
+          ? const BoxConstraints(minWidth: 44, minHeight: 40)
+          : null,
+      filled: true,
+      fillColor: Colors.white,
+      hintText: hintText,
+      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(40),
+        borderSide: const BorderSide(color: Colors.white),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(40),
+        borderSide: const BorderSide(color: Color(0xFF0084FF), width: 1.2),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(40),
+        borderSide: const BorderSide(color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildFooterRightLinks() {
+    if (_currentMode == RegisterMode.faculty) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () => setState(() => _currentMode = RegisterMode.student),
+            child: const Text(
+              "Register as NITJian",
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87),
+            ),
+          ),
+          const Text("  •  ",
+              style: TextStyle(color: Colors.black38, fontSize: 12)),
+          GestureDetector(
+            onTap: () => setState(() => _currentMode = RegisterMode.external),
+            child: const Text(
+              "Register as External",
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87),
+            ),
+          ),
+        ],
+      );
+    } else if (_currentMode == RegisterMode.external) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () => setState(() => _currentMode = RegisterMode.student),
+            child: const Text(
+              "Register as NITJian",
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87),
+            ),
+          ),
+          const Text("  •  ",
+              style: TextStyle(color: Colors.black38, fontSize: 12)),
+          GestureDetector(
+            onTap: () => setState(() => _currentMode = RegisterMode.faculty),
+            child: const Text(
+              "Register as Faculty",
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () => setState(() => _currentMode = RegisterMode.faculty),
+            child: const Text(
+              "Register as Faculty",
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87),
+            ),
+          ),
+          const Text("  •  ",
+              style: TextStyle(color: Colors.black38, fontSize: 12)),
+          GestureDetector(
+            onTap: () => setState(() => _currentMode = RegisterMode.external),
+            child: const Text(
+              "Register as External",
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87),
+            ),
+          ),
+        ],
+      );
+    }
   }
 }

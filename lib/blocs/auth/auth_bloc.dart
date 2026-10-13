@@ -159,6 +159,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
 
+    on<RegisterFacultyRequested>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        final result = await _authService.registerFaculty(
+          name: event.name,
+          email: event.email,
+          password: event.password,
+          department: event.department,
+          designation: event.designation,
+        );
+        if (result['success'] == true) {
+          if (result['data']?['token'] != null) {
+            try {
+              final user = await _userService.getMe();
+              _currentUser = user;
+              emit(Authenticated(user));
+              return;
+            } catch (_) {}
+          }
+          emit(RegisterSuccess(result['data']?['message'] ?? 'Faculty registration successful! Please login or check your email for verification.'));
+        } else {
+          emit(AuthError(result['message'] ?? 'Faculty registration failed'));
+        }
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
+    });
+
     on<RegisterRequested>((event, emit) async {
       emit(AuthLoading());
       try {

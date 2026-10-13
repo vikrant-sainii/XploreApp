@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:xplore_app/screens/user/user_registered_events_screen.dart';
-import 'package:xplore_app/screens/user/user_upcoming_events_screen.dart';
 import 'package:xplore_app/screens/user/user_home_screen.dart';
+import 'package:xplore_app/screens/user/user_clubs_screen.dart';
+import 'package:xplore_app/screens/user/user_upcoming_events_screen.dart';
 import 'package:xplore_app/screens/user/user_profile_screen.dart';
+import 'package:xplore_app/screens/user/user_registered_events_screen.dart';
 
 class UserPortalScreen extends StatefulWidget {
   const UserPortalScreen({super.key});
@@ -15,7 +15,7 @@ class UserPortalScreen extends StatefulWidget {
 class _UserPortalScreenState extends State<UserPortalScreen> {
   int currentindex = 0;
 
-  //general function to call back
+  // General function to call back
   void _modifyindex(int index) {
     setState(() {
       currentindex = index;
@@ -23,8 +23,21 @@ class _UserPortalScreenState extends State<UserPortalScreen> {
   }
 
   late final List<Widget> screen = [
-    UserHomeScreen(changeindex: _modifyindex,),
-    UserRegisteredEventsScreen(changeindex: _modifyindex),
+    UserHomeScreen(
+      changeindex: (idx) {
+        if (idx == 1) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => UserRegisteredEventsScreen(changeindex: _modifyindex),
+            ),
+          );
+        } else {
+          _modifyindex(idx);
+        }
+      },
+    ),
+    UserClubsScreen(changeindex: _modifyindex),
     UserUpcomingEventsScreen(changeindex: _modifyindex),
     UserProfileScreen(changeindex: _modifyindex),
   ];
@@ -53,7 +66,7 @@ class _UserPortalScreenState extends State<UserPortalScreen> {
   }
 }
 
-//bottomnavigationbar
+// Bottom Navigation Bar exactly matching original style, with updated icons and functionality
 class CustomBottomNavBar extends StatelessWidget {
   final int currentindex;
   final Function(int) onTap;
@@ -83,30 +96,28 @@ class CustomBottomNavBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            // Home
             IconButton(
               onPressed: () => onTap(0),
               icon: const Icon(Icons.home),
               iconSize: 30,
               color: (currentindex == 0) ? Colors.black : Colors.grey,
             ),
+            // Clubs
             IconButton(
               onPressed: () => onTap(1),
-              icon: SvgPicture.asset(
-                'assets/icons/homenav.svg',
-                width: 26,
-                height: 26,
-                colorFilter: ColorFilter.mode(
-                  (currentindex == 1) ? Colors.black : Colors.grey,
-                  BlendMode.srcIn,
-                ),
-              ),
+              icon: const Icon(Icons.group),
+              iconSize: 30,
+              color: (currentindex == 1) ? Colors.black : Colors.grey,
             ),
+            // Events
             IconButton(
               onPressed: () => onTap(2),
-              icon: const Icon(Icons.group),
+              icon: const Icon(Icons.calendar_month),
               iconSize: 30,
               color: (currentindex == 2) ? Colors.black : Colors.grey,
             ),
+            // Profile
             IconButton(
               onPressed: () => onTap(3),
               icon: const Icon(Icons.person),

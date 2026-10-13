@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xplore_app/blocs/event/event_bloc.dart';
+import 'package:xplore_app/models/event_model.dart';
 import 'user_home_screen.dart';
 import 'user_event_details_screen.dart';
 
@@ -14,6 +15,15 @@ class UserUpcomingEventsScreen extends StatefulWidget {
 
 class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  String _selectedFilter = 'All'; // 'All', 'Upcoming', 'Registered'
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EventBloc>().add(const FetchAllEvents());
+    });
+  }
 
   @override
   void dispose() {
@@ -40,7 +50,11 @@ class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
                 shape: const CircleBorder(),
               ),
               onPressed: () {
-                widget.changeindex(0);
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  widget.changeindex(0);
+                }
               },
             ),
           ],
@@ -59,7 +73,7 @@ class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 16, left: 24),
                     child: const Text(
-                      "Upcoming\nEvents",
+                      "College\nEvents",
                       style: TextStyle(
                         color: Colors.white,
                         letterSpacing: -1,
@@ -96,12 +110,21 @@ class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
                         padding: EdgeInsets.symmetric(horizontal: width * 0.05),
                         child: TextField(
                           controller: _searchController,
-                          onChanged: (val) {
-                            context.read<EventBloc>().add(SearchEvents(val));
+                          onChanged: (_) {
+                            setState(() {});
                           },
                           decoration: InputDecoration(
                             hintText: "Search events, venue, clubs...",
                             prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, size: 18, color: Colors.grey),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {});
+                                    },
+                                  )
+                                : null,
                             filled: true,
                             fillColor: Colors.white,
                             contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -112,7 +135,24 @@ class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
+
+                      // Filter chips (All Events, Upcoming, Registered)
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: EdgeInsets.symmetric(horizontal: width * 0.05),
+                        child: Row(
+                          children: [
+                            _buildFilterChip("All Events", "All"),
+                            const SizedBox(width: 8),
+                            _buildFilterChip("Upcoming", "Upcoming"),
+                            const SizedBox(width: 8),
+                            _buildFilterChip("Registered", "Registered"),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
                       Expanded(
                         child: Container(
                           margin: EdgeInsets.symmetric(horizontal: width * 0.05),
@@ -121,15 +161,49 @@ class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
                               if (state is EventLoading) {
                                 return const Center(child: CircularProgressIndicator());
                               } else if (state is EventsLoaded) {
-                                final events = state.filteredEvents.isNotEmpty
-                                    ? state.filteredEvents
-                                    : state.upcomingEvents;
+                                // Retrieve all events
+                                List<EventModel> baseEvents;
+                                if (_selectedFilter == 'Registered') {
+                                  baseEvents = state.registeredEvents;
+                                } else if (_selectedFilter == 'Upcoming') {
+                                  baseEvents = state.upcomingEvents;
+                                } else {
+                                  // Every event of the college
+                                  baseEvents = state.allEvents.isNotEmpty
+                                      ? state.allEvents
+                                      : (state.upcomingEvents.isNotEmpty
+                                          ? state.upcomingEvents
+                                          : state.registeredEvents);
+                                }
+
+                                // Apply search filter
+                                final query = _searchController.text.trim().toLowerCase();
+                                List<EventModel> events = query.isEmpty
+                                    ? List<EventModel>.from(baseEvents)
+                                    : baseEvents.where((e) {
+                                        final title = e.title.toLowerCase();
+                                        final venue = (e.venue ?? '').toLowerCase();
+                                        final club = e.clubName.toLowerCase();
+                                        return title.contains(query) ||
+                                            venue.contains(query) ||
+                                            club.contains(query);
+                                      }).toList();
+
+                                // ALWAYS SORT EVERY EVENT BY TIME
+                                events.sort((a, b) {
+                                  if (a.startTime == null && b.startTime == null) return 0;
+                                  if (a.startTime == null) return 1;
+                                  if (b.startTime == null) return -1;
+                                  return a.startTime!.compareTo(b.startTime!);
+                                });
 
                                 if (events.isEmpty) {
-                                  return const Center(
+                                  return Center(
                                     child: Text(
-                                      "No upcoming events found.",
-                                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                                      query.isNotEmpty
+                                          ? "No matching events found."
+                                          : "No events found.",
+                                      style: const TextStyle(fontSize: 16, color: Colors.grey),
                                     ),
                                   );
                                 }
@@ -139,7 +213,7 @@ class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
                                     context.read<EventBloc>().add(const FetchAllEvents());
                                   },
                                   child: ListView.builder(
-                                    padding: const EdgeInsets.only(bottom: 100),
+                                    padding: const EdgeInsets.only(bottom: 90),
                                     itemCount: events.length,
                                     itemBuilder: (BuildContext context, int index) {
                                       final event = events[index];
@@ -152,7 +226,7 @@ class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
                                         child: EventTile(
                                           imagelocation: event.imageLocation,
                                           title: event.title,
-                                          subtitle: event.subtitle,
+                                          subtitle: "${event.formattedDate} • ${event.subtitle}",
                                           timeText: event.formattedTime,
                                           onTap: () {
                                             Navigator.push(
@@ -166,7 +240,9 @@ class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
                                               ),
                                             );
                                           },
-                                          type: TrailingType.typeUpcoming,
+                                          type: event.isRegistered
+                                              ? TrailingType.typeRegistered
+                                              : TrailingType.typeUpcoming,
                                         ),
                                       );
                                     },
@@ -186,6 +262,35 @@ class _UserUpcomingEventsScreenState extends State<UserUpcomingEventsScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = _selectedFilter == value;
+    return ChoiceChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : const Color(0xFF191C32),
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+          fontSize: 12,
+        ),
+      ),
+      selected: isSelected,
+      onSelected: (_) {
+        setState(() {
+          _selectedFilter = value;
+        });
+      },
+      selectedColor: const Color(0xFF191C32),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? const Color(0xFF191C32) : Colors.grey.shade300,
+        ),
+      ),
+      showCheckmark: false,
     );
   }
 }

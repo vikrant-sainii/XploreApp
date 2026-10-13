@@ -88,6 +88,25 @@ class RegisterExternalRequested extends AuthEvent {
   List<Object?> get props => [name, email, password, collegeName, phone, program, year];
 }
 
+class RegisterFacultyRequested extends AuthEvent {
+  final String name;
+  final String email;
+  final String password;
+  final String department;
+  final String? designation;
+
+  const RegisterFacultyRequested({
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.department,
+    this.designation,
+  });
+
+  @override
+  List<Object?> get props => [name, email, password, department, designation];
+}
+
 class Verify2FARequested extends AuthEvent {
   final String email;
   final String otp;
